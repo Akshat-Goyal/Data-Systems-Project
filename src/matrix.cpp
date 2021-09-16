@@ -1,5 +1,4 @@
 #include "global.h"
-#include "matrix.h"
 
 /**
  * @brief Construct a new Matrix:: Matrix object
@@ -204,6 +203,7 @@ void Matrix::makePermanent()
     ofstream fout(newSourceFile, ios::out);
 
     Cursor cursor(this->matrixName, 0);
+    cout << ":::::::::::\n";
     vector<vector<int>> rows(this->maxRowsPerBlock, vector<int>(this->columnCount));
     for (int rowwiseBlockCounter = 0, blockCounter = 0; rowwiseBlockCounter < this->blocksPerRow; rowwiseBlockCounter++)
     {

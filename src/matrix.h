@@ -1,12 +1,5 @@
 #include "cursor.h"
 
-enum IndexingStrategy
-{
-    BTREE,
-    HASH,
-    NOTHING
-};
-
 /**
  * @brief The Matrix class holds all information related to a loaded matrix. It
  * also implements methods that interact with the parsers, executors, cursors
