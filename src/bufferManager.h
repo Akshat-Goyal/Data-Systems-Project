@@ -35,4 +35,5 @@ class BufferManager{
     void deleteFile(string tableName, int pageIndex);
     void deleteFile(string fileName);
     void writePage(string tableName, int pageIndex, vector<vector<int>> rows, int rowCount);
+    void writeMatrixPage(string tableName, int pageIndex, vector<vector<int>> rows, int rowCount, int colStartIdx, int columnCount);
 };

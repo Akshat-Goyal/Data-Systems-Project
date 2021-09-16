@@ -9,6 +9,7 @@ Page::Page()
     this->tableName = "";
     this->pageIndex = -1;
     this->rowCount = 0;
+    this->colStartIdx = 0;
     this->columnCount = 0;
     this->rows.clear();
 }
@@ -78,6 +79,18 @@ Page::Page(string tableName, int pageIndex, vector<vector<int>> rows, int rowCou
     this->pageName = "../data/temp/"+this->tableName + "_Page" + to_string(pageIndex);
 }
 
+Page::Page(string tableName, int pageIndex, vector<vector<int>> rows, int rowCount, int colStartIdx, int columnCount)
+{
+    logger.log("Page::Page");
+    this->tableName = tableName;
+    this->pageIndex = pageIndex;
+    this->rows = rows;
+    this->rowCount = rowCount;
+    this->colStartIdx = colStartIdx;
+    this->columnCount = columnCount;
+    this->pageName = "../data/temp/"+this->tableName + "_Page" + to_string(pageIndex);
+}
+
 /**
  * @brief writes current page contents to file.
  * 
@@ -92,7 +105,7 @@ void Page::writePage()
         {
             if (columnCounter != 0)
                 fout << " ";
-            fout << this->rows[rowCounter][columnCounter];
+            fout << this->rows[rowCounter][this->colStartIdx + columnCounter];
         }
         fout << endl;
     }
