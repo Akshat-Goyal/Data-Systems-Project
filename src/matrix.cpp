@@ -48,52 +48,73 @@ bool Matrix::blockify()
     logger.log("Matrix::blockify");
     if (!this->setStatistics())
         return false;
-    ifstream fin(this->sourceFileName, ios::in);
-    string line, word;
-    vector<vector<int>> rows(this->maxRowsPerBlock, vector<int>(this->columnCount));
-    int rowCounter = 0;
-    while (getline(fin, line))
+
+    vector<vector<int>> rows(this->maxRowsPerBlock);
+
+    for (int block_j = 0, columnPointer = 0; block_j < this->blocksPerRow; block_j++)
     {
-        stringstream s(line);
-        for (int columnCounter = 0; columnCounter < this->columnCount; columnCounter++)
+        int columnsInBlock = min(this->columnCount - columnPointer, this->maxRowsPerBlock);
+
+        ifstream fin(this->sourceFileName, ios::in);
+        int block_i = 0, rowCounter = 0;
+        while (true)
         {
-            if (!getline(s, word, ','))
-                return false;
-            rows[rowCounter][columnCounter] = stoi(word);
-        }
-        rowCounter++;
-        this->rowCount++;
-        if (rowCounter == this->maxRowsPerBlock)
-        {
-            for (int columnCounter = 0; columnCounter < this->columnCount;)
+            rows[rowCounter] = this->readRowSegment(columnPointer, columnsInBlock, fin);
+            if (!rows[rowCounter].size())
+                break;
+            rowCounter++;
+            if (rowCounter == this->maxRowsPerBlock)
             {
-                int blockColCount = min(this->columnCount - columnCounter, this->maxRowsPerBlock);
-                bufferManager.writeMatrixPage(this->matrixName, this->blockCount, rows, rowCounter, columnCounter, blockColCount);
-                columnCounter += blockColCount;
-                this->blockCount++;
-                this->dimPerBlockCount.push_back({rowCounter, blockColCount});
+                int blockNum = block_i * this->blocksPerRow + block_j;
+                bufferManager.writeMatrixPage(this->matrixName, blockNum, rows, rowCounter);
+                block_i++;
+                this->dimPerBlockCount[blockNum] = {rowCounter, columnsInBlock};
+                rowCounter = 0;
             }
+        }
+
+        if (rowCounter)
+        {
+            int blockNum = block_i * this->blocksPerRow + block_j;
+            bufferManager.writeMatrixPage(this->matrixName, blockNum, rows, rowCounter);
+            block_i++;
+            this->dimPerBlockCount[blockNum] = {rowCounter, columnsInBlock};
             rowCounter = 0;
         }
-    }
-    fin.close();
-
-    if (rowCounter)
-    {
-        for (int columnCounter = 0; columnCounter < this->columnCount;)
-        {
-            int blockColCount = min(this->columnCount - columnCounter, this->maxRowsPerBlock);
-            bufferManager.writeMatrixPage(this->matrixName, this->blockCount, rows, rowCounter, columnCounter, blockColCount);
-            columnCounter += blockColCount;
-            this->blockCount++;
-            this->dimPerBlockCount.push_back({rowCounter, blockColCount});
-        }
-        rowCounter = 0;
+        columnPointer += columnsInBlock;
+        fin.close();
     }
 
     if (this->rowCount == 0)
         return false;
     return true;
+}
+
+/**
+ * @brief This function reads the segment of the row pointed by fin.
+ *
+ * @return vector<int>
+ */
+vector<int> Matrix::readRowSegment(int columnPointer, int columnsInBlock, ifstream &fin)
+{
+    logger.log("Matrix::readRowSegment");
+    vector<int> row;
+    string line, word;
+    if (!getline(fin, line))
+        return row;
+    stringstream s(line);
+    int columnCounter = 0, columnEndIndex = columnPointer + columnsInBlock;
+    while (columnCounter < columnPointer)
+    {
+        getline(s, word, ',');
+        columnCounter++;
+    }
+    while (columnCounter++ < columnEndIndex)
+    {
+        if (getline(s, word, ','))
+            row.push_back(stoi(word));
+    }
+    return row;
 }
 
 /**
@@ -109,14 +130,17 @@ bool Matrix::setStatistics()
     string line, word;
     if (!getline(fin, line))
         return false;
-    fin.close();
+    this->rowCount++;
     stringstream s(line);
     while (getline(s, word, ','))
-    {
         this->columnCount++;
-    }
+    while (getline(fin, line))
+        this->rowCount++;
+    fin.close();
     this->maxRowsPerBlock = (uint)sqrt((BLOCK_COUNT * 1024) / sizeof(int));
     this->blocksPerRow = this->columnCount / this->maxRowsPerBlock + (this->columnCount % this->maxRowsPerBlock != 0);
+    this->blockCount = this->blocksPerRow * this->blocksPerRow;
+    this->dimPerBlockCount.resize(this->blockCount);
     return true;
 }
 
@@ -132,35 +156,10 @@ void Matrix::print()
     uint count = min((long long)PRINT_COUNT, this->rowCount);
 
     CursorMatrix cursor = this->getCursor();
-    vector<vector<int>> rows(this->maxRowsPerBlock, vector<int>(this->columnCount));
-    for (int rowCounter = 0, blockCounter = 0; rowCounter < min(this->rowCount, (long long)count);)
+    for (int rowCounter = 0; rowCounter < count; rowCounter++)
     {
-        int blockRowCount = this->dimPerBlockCount[blockCounter].first;
-        for (int columnCounter = 0; columnCounter < this->columnCount;)
-        {
-            auto blockDim = this->dimPerBlockCount[blockCounter++];
-            for (int blockRowCounter = 0; blockRowCounter < blockDim.first; blockRowCounter++)
-            {
-                if (blockRowCounter + rowCounter == count)
-                {
-                    this->getNextPage(&cursor);
-                    break;
-                }
-                auto row = cursor.getNext();
-                for (int blockColCounter = 0; blockColCounter < blockDim.second; blockColCounter++)
-                {
-                    rows[blockRowCounter][columnCounter++] = row[blockColCounter];
-                }
-            }
-        }
-
-        for (int blockRowCounter = 0; blockRowCounter < blockRowCount; blockRowCounter)
-        {
-            this->writeRow(rows[blockRowCounter], cout);
-            rowCounter++;
-            if (rowCounter == count)
-                break;
-        }
+        for (int seg = 0; seg < this->blocksPerRow; seg++)
+            this->writeRow(cursor.getNext(), cout, seg == 0, seg == this->blocksPerRow - 1);
     }
     printRowCount(this->rowCount);
 }
@@ -193,13 +192,15 @@ void Matrix::getNextPointer(CursorMatrix *cursor)
     if ((cursor->pageIndex + 1) % this->blocksPerRow == 0)
     {
         if (cursor->pagePointer == this->dimPerBlockCount[cursor->pageIndex].first - 1)
+        {
             if (cursor->pageIndex < this->blockCount - 1)
                 cursor->nextPage(cursor->pageIndex + 1);
+        }
         else
             cursor->nextPage(cursor->pageIndex - this->blocksPerRow + 1, cursor->pagePointer + 1);
     }
-    else
-        cursor->pagePointer++;
+    else if (cursor->pageIndex < this->blockCount - 1)
+        cursor->nextPage(cursor->pageIndex + 1, cursor->pagePointer);
 }
 
 /**
@@ -215,29 +216,35 @@ void Matrix::makePermanent()
     string newSourceFile = "../data/" + this->matrixName + ".csv";
     ofstream fout(newSourceFile, ios::out);
 
-    CursorMatrix cursor(this->matrixName, 0);
-    vector<vector<int>> rows(this->maxRowsPerBlock, vector<int>(this->columnCount));
-    for (int rowwiseBlockCounter = 0, blockCounter = 0; rowwiseBlockCounter < this->blocksPerRow; rowwiseBlockCounter++)
+    CursorMatrix cursor = this->getCursor();
+    for (int rowCounter = 0; rowCounter < this->rowCount; rowCounter++)
     {
-        int blockRowCount = this->dimPerBlockCount[blockCounter].first;
-        for (int columnCounter = 0; columnCounter < this->columnCount;)
-        {
-            auto blockDim = this->dimPerBlockCount[blockCounter++];
-            for (int blockRowCounter = 0; blockRowCounter < blockDim.first; blockRowCounter++)
-            {
-                auto row = cursor.getNext();
-                for (int blockColCounter = 0; blockColCounter < blockDim.second; blockColCounter++)
-                {
-                    rows[blockRowCounter][columnCounter++] = row[blockColCounter];
-                }
-            }
-        }
-
-        for (int blockRowCounter = 0; blockRowCounter < blockRowCount; blockRowCounter)
-        {
-            this->writeRow(rows[blockRowCounter], fout);
-        }
+        for (int seg = 0; seg < this->blocksPerRow; seg++)
+            this->writeRow(cursor.getNext(), fout, seg == 0, seg == this->blocksPerRow - 1);
     }
+
+    // vector<vector<int>> rows(this->maxRowsPerBlock, vector<int>(this->columnCount));
+    // for (int rowwiseBlockCounter = 0, blockCounter = 0; rowwiseBlockCounter < this->blocksPerRow; rowwiseBlockCounter++)
+    // {
+    //     int blockRowCount = this->dimPerBlockCount[blockCounter].first;
+    //     for (int columnCounter = 0; columnCounter < this->columnCount;)
+    //     {
+    //         auto blockDim = this->dimPerBlockCount[blockCounter++];
+    //         for (int blockRowCounter = 0; blockRowCounter < blockDim.first; blockRowCounter++)
+    //         {
+    //             auto row = cursor.getNext();
+    //             for (int blockColCounter = 0; blockColCounter < blockDim.second; blockColCounter++)
+    //             {
+    //                 rows[blockRowCounter][columnCounter++] = row[blockColCounter];
+    //             }
+    //         }
+    //     }
+
+    //     for (int blockRowCounter = 0; blockRowCounter < blockRowCount; blockRowCounter)
+    //     {
+    //         this->writeRow(rows[blockRowCounter], fout);
+    //     }
+    // }
     fout.close();
 }
 

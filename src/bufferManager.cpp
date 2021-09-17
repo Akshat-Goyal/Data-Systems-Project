@@ -162,10 +162,10 @@ void BufferManager::writePage(string tableName, int pageIndex, vector<vector<int
  * @param colStartIdx
  * @param columnCount
  */
-void BufferManager::writeMatrixPage(string matrixName, int pageIndex, vector<vector<int>> rows, int rowCount, int colStartIdx, int columnCount)
+void BufferManager::writeMatrixPage(string matrixName, int pageIndex, vector<vector<int>> rows, int rowCount)
 {
     logger.log("BufferManager::writeMatrixPage");
-    MatrixPage page(matrixName, pageIndex, rows, rowCount, colStartIdx, columnCount);
+    MatrixPage page(matrixName, pageIndex, rows, rowCount);
     page.writePage();
 }
 

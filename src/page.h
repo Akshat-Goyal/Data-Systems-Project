@@ -30,15 +30,12 @@ class Page{
 
 class MatrixPage : public Page {
     string matrixName;
-    int colStartIdx;
 
     public:
 
     MatrixPage();
     MatrixPage(string matrixName, int pageIndex);
     MatrixPage(string matrixName, int pageIndex, vector<vector<int>> rows, int rowCount);
-    MatrixPage(string matrixName, int pageIndex, vector<vector<int>> rows, int rowCount, int colStartIdx, int columnCount);
-    void writePage();
 };
 
 class TablePage : public Page {

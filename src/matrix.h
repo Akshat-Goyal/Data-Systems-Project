@@ -7,6 +7,10 @@
  */
 class Matrix
 {
+    bool blockify();
+    bool setStatistics();
+    vector<int> readRowSegment(int columnPointer, int columnsInBlock, ifstream &fin);
+
 public:
     string sourceFileName = "";
     string matrixName = "";
@@ -17,8 +21,6 @@ public:
     uint maxRowsPerBlock = 0;
     vector<pair<uint, uint>> dimPerBlockCount;
 
-    bool blockify();
-    bool setStatistics();
     Matrix(string matrixName);
     bool load();
     void print();
@@ -37,16 +39,17 @@ public:
      * @param row 
      */
     template <typename T>
-    void writeRow(vector<T> row, ostream &fout)
+    void writeRow(vector<T> row, ostream &fout, bool first = false, bool last = true)
     {
         logger.log("Matrix::printRow");
         for (int columnCounter = 0; columnCounter < row.size(); columnCounter++)
         {
-            if (columnCounter != 0)
+            if (!first || columnCounter != 0)
                 fout << ", ";
             fout << row[columnCounter];
         }
-        fout << endl;
+        if (last)
+            fout << endl;
     }
 
     /**
@@ -57,11 +60,11 @@ public:
      * @param row 
      */
     template <typename T>
-    void writeRow(vector<T> row)
+    void writeRow(vector<T> row, bool first = false, bool last = true)
     {
         logger.log("Matrix::printRow");
         ofstream fout(this->sourceFileName, ios::app);
-        this->writeRow(row, fout);
+        this->writeRow(row, fout, first, last);
         fout.close();
     }
 };

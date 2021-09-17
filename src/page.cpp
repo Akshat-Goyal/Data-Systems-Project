@@ -23,7 +23,6 @@ MatrixPage::MatrixPage()
 {
     logger.log("MatrixPage::MatrixPage");
     this->matrixName = "";
-    this->colStartIdx = 0;
 }
 
 /**
@@ -100,18 +99,6 @@ MatrixPage::MatrixPage(string matrixName, int pageIndex, vector<vector<int>> row
     this->pageName = "../data/temp/"+this->matrixName + "_Page" + to_string(pageIndex);
 }
 
-MatrixPage::MatrixPage(string matrixName, int pageIndex, vector<vector<int>> rows, int rowCount, int colStartIdx, int columnCount)
-{
-    logger.log("Page::Page");
-    this->matrixName = matrixName;
-    this->pageIndex = pageIndex;
-    this->rows = rows;
-    this->rowCount = rowCount;
-    this->colStartIdx = colStartIdx;
-    this->columnCount = columnCount;
-    this->pageName = "../data/temp/"+this->matrixName + "_Page" + to_string(pageIndex);
-}
-
 /**
  * @brief page is loaded into rows
  * 
@@ -163,27 +150,6 @@ void Page::writePage()
             if (columnCounter != 0)
                 fout << " ";
             fout << this->rows[rowCounter][columnCounter];
-        }
-        fout << endl;
-    }
-    fout.close();
-}
-
-/**
- * @brief writes current page contents to file.
- * 
- */
-void MatrixPage::writePage()
-{
-    logger.log("Page::writePage");
-    ofstream fout(this->pageName, ios::trunc);
-    for (int rowCounter = 0; rowCounter < this->rowCount; rowCounter++)
-    {
-        for (int columnCounter = 0; columnCounter < this->columnCount; columnCounter++)
-        {
-            if (columnCounter != 0)
-                fout << " ";
-            fout << this->rows[rowCounter][this->colStartIdx + columnCounter];
         }
         fout << endl;
     }
