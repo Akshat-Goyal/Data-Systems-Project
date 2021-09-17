@@ -145,6 +145,49 @@ bool Matrix::setStatistics()
 }
 
 /**
+ * @brief Transposes matrix. Swaps block_ij with block_ji for each i, j, and 
+ * transposes smaller matrix in each block
+ *
+ */
+void Matrix::transpose()
+{
+    for (int block_i = 0; block_i < this->blocksPerRow; block_i++)
+    {
+        for (int block_j = 0; block_j < this->blocksPerRow; block_j++)
+        {
+            if (block_i != block_j)
+            {
+                int block_ij = block_i * this->blocksPerRow + block_j, block_ji = block_j * this->blocksPerRow + block_i;
+                MatrixPage* page_ij = bufferManager.getMatrixPage(this->matrixName, block_ij);
+                MatrixPage* page_ji = bufferManager.getMatrixPage(this->matrixName, block_ji);
+                swap(page_ij, page_ji);
+                swap(this->dimPerBlockCount[block_ij], this->dimPerBlockCount[block_ji]);
+                this->transposePage(page_ij, block_ij);
+                this->transposePage(page_ji, block_ji);
+            }
+            else
+            {
+                int block_ij = block_i * this->blocksPerRow + block_j;
+                MatrixPage* page_ij = bufferManager.getMatrixPage(this->matrixName, block_ij);
+                this->transposePage(page_ij, block_ij);
+            }
+        }
+    }
+}
+
+/**
+ * @brief Transposes matrix of the given block
+ *
+ */
+void Matrix::transposePage(MatrixPage *page, int blockIdx)
+{
+    page->transpose();
+    swap(this->dimPerBlockCount[blockIdx].first, this->dimPerBlockCount[blockIdx].second);
+    bufferManager.writeMatrixPage(this->matrixName, blockIdx, page->getRows(), this->dimPerBlockCount[blockIdx].first);
+}
+
+
+/**
  * @brief Function prints the first few rows of the matrix. If the matrix contains
  * more rows than PRINT_COUNT, exactly PRINT_COUNT rows are printed, else all
  * the rows are printed.

@@ -13,6 +13,7 @@ bool semanticParse(){
         case LIST: return semanticParseLIST();
         case LOAD: return semanticParseLOAD();
         case LOADMATRIX: return semanticParseLOADMATRIX();
+        case TRANSPOSE: return semanticParseTRANSPOSE();
         case PRINT: return semanticParsePRINT();
         case PRINTMATRIX: return semanticParsePRINTMATRIX();
         case PROJECTION: return semanticParsePROJECTION();

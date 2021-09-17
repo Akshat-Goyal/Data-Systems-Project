@@ -12,6 +12,7 @@ void executeJOIN();
 void executeLIST();
 void executeLOAD();
 void executeLOADMATRIX();
+void executeTRANSPOSE();
 void executePRINT();
 void executePRINTMATRIX();
 void executePROJECTION();

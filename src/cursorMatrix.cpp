@@ -3,7 +3,7 @@
 CursorMatrix::CursorMatrix(string matrixName, int pageIndex)
 {
     logger.log("CursorMatrix::CursorMatrix");
-    this->page = bufferManager.getMatrixPage(matrixName, pageIndex);
+    this->page = *bufferManager.getMatrixPage(matrixName, pageIndex);
     this->pagePointer = 0;
     this->matrixName = matrixName;
     this->pageIndex = pageIndex;
@@ -56,7 +56,7 @@ vector<int> CursorMatrix::getNext()
 void CursorMatrix::nextPage(int pageIndex, int pagePointer)
 {
     logger.log("CursorMatrix::nextPage");
-    this->page = bufferManager.getMatrixPage(this->matrixName, pageIndex);
+    this->page = *bufferManager.getMatrixPage(this->matrixName, pageIndex);
     this->pageIndex = pageIndex;
     this->pagePointer = pagePointer;
 }

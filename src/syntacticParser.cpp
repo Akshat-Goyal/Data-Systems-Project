@@ -37,6 +37,8 @@ bool syntacticParse()
             return syntacticParseEXPORTMATRIX();
         return syntacticParseEXPORT();
     }
+    else if(possibleQueryType == "TRANSPOSE")
+        return syntacticParseTRANSPOSE();
     else if(possibleQueryType == "SOURCE")
         return syntacticParseSOURCE();
     else

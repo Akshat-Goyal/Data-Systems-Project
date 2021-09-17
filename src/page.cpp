@@ -100,6 +100,24 @@ MatrixPage::MatrixPage(string matrixName, int pageIndex, vector<vector<int>> row
 }
 
 /**
+ * @brief Transposes rows of page
+ * 
+ */
+void MatrixPage::transpose()
+{
+    vector<vector<int>> transMat(this->columnCount, vector<int>(this->rowCount));
+    for (int i = 0; i < this->rowCount; i++)
+    {
+        for (int j = 0; j < this->columnCount; j++)
+        {
+            transMat[j][i] = this->rows[i][j];
+        }
+    }
+    this->rows = transMat;
+    swap(this->rowCount, this->columnCount);
+}
+
+/**
  * @brief page is loaded into rows
  * 
  */
@@ -133,6 +151,27 @@ vector<int> Page::getRow(int rowIndex)
     if (rowIndex >= this->rowCount)
         return result;
     return this->rows[rowIndex];
+}
+
+/**
+ * @brief Get rows from page
+ * 
+ * @return vectorvector<int> 
+ */
+vector<vector<int>> Page::getRows()
+{
+    return this->rows;
+}
+
+/**
+ * @brief Updates rows, row and column count
+ * 
+ */
+void Page::updateRows(vector<vector<int>> mat, int rowCnt, int colCnt)
+{
+    this->rows = mat;
+    this->rowCount = rowCnt;
+    this->columnCount = colCnt;
 }
 
 /**

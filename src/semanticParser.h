@@ -12,6 +12,7 @@ bool semanticParseJOIN();
 bool semanticParseLIST();
 bool semanticParseLOAD();
 bool semanticParseLOADMATRIX();
+bool semanticParseTRANSPOSE();
 bool semanticParsePRINT();
 bool semanticParsePRINTMATRIX();
 bool semanticParsePROJECTION();

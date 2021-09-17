@@ -15,6 +15,7 @@ enum QueryType
     LIST,
     LOAD,
     LOADMATRIX,
+    TRANSPOSE,
     PRINT,
     PRINTMATRIX,
     PROJECTION,
@@ -120,6 +121,7 @@ bool syntacticParseJOIN();
 bool syntacticParseLIST();
 bool syntacticParseLOAD();
 bool syntacticParseLOADMATRIX();
+bool syntacticParseTRANSPOSE();
 bool syntacticParsePRINT();
 bool syntacticParsePRINTMATRIX();
 bool syntacticParsePROJECTION();

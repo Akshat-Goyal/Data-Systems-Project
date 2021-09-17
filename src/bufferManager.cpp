@@ -18,9 +18,9 @@ TablePage BufferManager::getPage(string tableName, int pageIndex)
     logger.log("BufferManager::getPage");
     string pageName = "../data/temp/" + tableName + "_Page" + to_string(pageIndex);
     if (this->inPool(pageName))
-        return this->getFromPool(pageName);
+        return *this->getFromPool(pageName);
     else
-        return this->insertIntoPool(tableName, pageIndex);
+        return *this->insertIntoPool(tableName, pageIndex);
 }
 
 /**
@@ -31,7 +31,7 @@ TablePage BufferManager::getPage(string tableName, int pageIndex)
  * @param pageIndex 
  * @return MatrixPage 
  */
-MatrixPage BufferManager::getMatrixPage(string matrixName, int pageIndex)
+MatrixPage* BufferManager::getMatrixPage(string matrixName, int pageIndex)
 {
     logger.log("BufferManager::getMatrixPage");
     string pageName = "../data/temp/" + matrixName + "_Page" + to_string(pageIndex);
@@ -67,12 +67,12 @@ bool BufferManager::inPool(string pageName)
  * @param pageName 
  * @return TablePage 
  */
-TablePage BufferManager::getFromPool(string pageName)
+TablePage* BufferManager::getFromPool(string pageName)
 {
     logger.log("BufferManager::getFromPool");
     for (auto page : this->pages)
         if (pageName == page->pageName)
-            return *dynamic_cast<TablePage*>(page);
+            return dynamic_cast<TablePage*>(page);
 }
 
 /**
@@ -83,12 +83,12 @@ TablePage BufferManager::getFromPool(string pageName)
  * @param pageName 
  * @return MatrixPage 
  */
-MatrixPage BufferManager::getMatrixFromPool(string pageName)
+MatrixPage* BufferManager::getMatrixFromPool(string pageName)
 {
     logger.log("BufferManager::getMatrixFromPool");
     for (auto page : this->pages)
         if (pageName == page->pageName)
-            return *dynamic_cast<MatrixPage*>(page);
+            return dynamic_cast<MatrixPage*>(page);
 }
 
 /**
@@ -100,7 +100,7 @@ MatrixPage BufferManager::getMatrixFromPool(string pageName)
  * @param pageIndex 
  * @return TablePage 
  */
-TablePage BufferManager::insertIntoPool(string tableName, int pageIndex)
+TablePage* BufferManager::insertIntoPool(string tableName, int pageIndex)
 {
     logger.log("BufferManager::insertIntoPool");
     TablePage *page = new TablePage(tableName, pageIndex);
@@ -110,7 +110,7 @@ TablePage BufferManager::insertIntoPool(string tableName, int pageIndex)
         pages.pop_front();
     }
     pages.push_back(page);
-    return *page;
+    return page;
 }
 
 /**
@@ -122,7 +122,7 @@ TablePage BufferManager::insertIntoPool(string tableName, int pageIndex)
  * @param pageIndex 
  * @return MatrixPage 
  */
-MatrixPage BufferManager::insertMatrixIntoPool(string matrixName, int pageIndex)
+MatrixPage* BufferManager::insertMatrixIntoPool(string matrixName, int pageIndex)
 {
     logger.log("BufferManager::insertMatrixIntoPool");
     MatrixPage *page = new MatrixPage(matrixName, pageIndex);
@@ -132,7 +132,7 @@ MatrixPage BufferManager::insertMatrixIntoPool(string matrixName, int pageIndex)
         pages.pop_front();
     }
     pages.push_back(page);
-    return *page;
+    return page;
 }
 
 /**

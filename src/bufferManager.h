@@ -27,17 +27,17 @@ class BufferManager{
 
     deque<Page*> pages; 
     bool inPool(string pageName);
-    TablePage getFromPool(string pageName);
-    MatrixPage getMatrixFromPool(string pageName);
-    TablePage insertIntoPool(string tableName, int pageIndex);
-    MatrixPage insertMatrixIntoPool(string matrixName, int pageIndex);
+    TablePage* getFromPool(string pageName);
+    MatrixPage* getMatrixFromPool(string pageName);
+    TablePage* insertIntoPool(string tableName, int pageIndex);
+    MatrixPage* insertMatrixIntoPool(string matrixName, int pageIndex);
 
     public:
     
     BufferManager();
     ~BufferManager();
     TablePage getPage(string tableName, int pageIndex);
-    MatrixPage getMatrixPage(string matrixName, int pageIndex);
+    MatrixPage* getMatrixPage(string matrixName, int pageIndex);
     void deleteFile(string relationName, int pageIndex);
     void deleteFile(string fileName);
     void writePage(string tableName, int pageIndex, vector<vector<int>> rows, int rowCount);
