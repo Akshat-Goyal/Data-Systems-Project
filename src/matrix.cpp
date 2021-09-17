@@ -1,15 +1,6 @@
 #include "global.h"
 
 /**
- * @brief Construct a new Matrix:: Matrix object
- *
- */
-Matrix::Matrix()
-{
-    logger.log("Matrix::Matrix");
-}
-
-/**
  * @brief Construct a new Matrix:: Matrix object used in the case where the data
  * file is available and LOAD command has been called. This command should be
  * followed by calling the load function;
@@ -140,7 +131,7 @@ void Matrix::print()
     logger.log("Matrix::print");
     uint count = min((long long)PRINT_COUNT, this->rowCount);
 
-    Cursor cursor = this->getCursor();
+    CursorMatrix cursor = this->getCursor();
     vector<vector<int>> rows(this->maxRowsPerBlock, vector<int>(this->columnCount));
     for (int rowCounter = 0, blockCounter = 0; rowCounter < min(this->rowCount, (long long)count);)
     {
@@ -179,7 +170,7 @@ void Matrix::print()
  *
  * @param cursor 
  */
-void Matrix::getNextPage(Cursor *cursor)
+void Matrix::getNextPage(CursorMatrix *cursor)
 {
     logger.log("Matrix::getNextPage");
 
@@ -187,6 +178,28 @@ void Matrix::getNextPage(Cursor *cursor)
     {
         cursor->nextPage(cursor->pageIndex + 1);
     }
+}
+
+/**
+ * @brief This function moves cursor to point to the next segment 
+ * of the matrix's row or to the starting of the next row if exists.
+ *
+ * @param cursor 
+ */
+void Matrix::getNextPointer(CursorMatrix *cursor)
+{
+    logger.log("Matrix::getNextPointer");
+    
+    if ((cursor->pageIndex + 1) % this->blocksPerRow == 0)
+    {
+        if (cursor->pagePointer == this->dimPerBlockCount[cursor->pageIndex].first - 1)
+            if (cursor->pageIndex < this->blockCount - 1)
+                cursor->nextPage(cursor->pageIndex + 1);
+        else
+            cursor->nextPage(cursor->pageIndex - this->blocksPerRow + 1, cursor->pagePointer + 1);
+    }
+    else
+        cursor->pagePointer++;
 }
 
 /**
@@ -202,8 +215,7 @@ void Matrix::makePermanent()
     string newSourceFile = "../data/" + this->matrixName + ".csv";
     ofstream fout(newSourceFile, ios::out);
 
-    Cursor cursor(this->matrixName, 0);
-    cout << ":::::::::::\n";
+    CursorMatrix cursor(this->matrixName, 0);
     vector<vector<int>> rows(this->maxRowsPerBlock, vector<int>(this->columnCount));
     for (int rowwiseBlockCounter = 0, blockCounter = 0; rowwiseBlockCounter < this->blocksPerRow; rowwiseBlockCounter++)
     {
@@ -260,11 +272,11 @@ void Matrix::unload()
 /**
  * @brief Function that returns a cursor that reads rows from this matrix
  * 
- * @return Cursor 
+ * @return CursorMatrix 
  */
-Cursor Matrix::getCursor()
+CursorMatrix Matrix::getCursor()
 {
     logger.log("Matrix::getCursor");
-    Cursor cursor(this->matrixName, 0);
+    CursorMatrix cursor(this->matrixName, 0);
     return cursor;
 }

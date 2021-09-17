@@ -1,3 +1,6 @@
+#ifndef __BUFFER_MANAGER_H__
+#define __BUFFER_MANAGER_H__
+
 #include"page.h"
 
 /**
@@ -22,18 +25,23 @@
  */
 class BufferManager{
 
-    deque<Page> pages; 
+    deque<Page*> pages; 
     bool inPool(string pageName);
-    Page getFromPool(string pageName);
-    Page insertIntoPool(string tableName, int pageIndex);
+    TablePage getFromPool(string pageName);
+    MatrixPage getMatrixFromPool(string pageName);
+    TablePage insertIntoPool(string tableName, int pageIndex);
+    MatrixPage insertMatrixIntoPool(string matrixName, int pageIndex);
 
     public:
     
     BufferManager();
-    Page getPage(string tableName, int pageIndex);
-    void writePage(string pageName, vector<vector<int>> rows);
-    void deleteFile(string tableName, int pageIndex);
+    ~BufferManager();
+    TablePage getPage(string tableName, int pageIndex);
+    MatrixPage getMatrixPage(string matrixName, int pageIndex);
+    void deleteFile(string relationName, int pageIndex);
     void deleteFile(string fileName);
     void writePage(string tableName, int pageIndex, vector<vector<int>> rows, int rowCount);
     void writeMatrixPage(string tableName, int pageIndex, vector<vector<int>> rows, int rowCount, int colStartIdx, int columnCount);
 };
+
+#endif

@@ -235,8 +235,6 @@ void Table::print()
     printRowCount(this->rowCount);
 }
 
-
-
 /**
  * @brief This function returns one row of the table using the cursor object. It
  * returns an empty row is all rows have been read.
@@ -253,8 +251,6 @@ void Table::getNextPage(Cursor *cursor)
             cursor->nextPage(cursor->pageIndex+1);
         }
 }
-
-
 
 /**
  * @brief called when EXPORT command is invoked to move source file to "data"

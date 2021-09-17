@@ -12,20 +12,41 @@
 
 class Page{
 
-    string tableName;
+    protected:
+
     string pageIndex;
-    int colStartIdx;
     int columnCount;
     int rowCount;
     vector<vector<int>> rows;
+    void fillRows();
+
+    public:
+    
+    string pageName = "";
+    Page();
+    virtual vector<int> getRow(int rowIndex);
+    virtual void writePage();
+};
+
+class MatrixPage : public Page {
+    string matrixName;
+    int colStartIdx;
 
     public:
 
-    string pageName = "";
-    Page();
-    Page(string tableName, int pageIndex);
-    Page(string tableName, int pageIndex, vector<vector<int>> rows, int rowCount);
-    Page(string tableName, int pageIndex, vector<vector<int>> rows, int rowCount, int colStartIdx, int columnCount);
-    vector<int> getRow(int rowIndex);
+    MatrixPage();
+    MatrixPage(string matrixName, int pageIndex);
+    MatrixPage(string matrixName, int pageIndex, vector<vector<int>> rows, int rowCount);
+    MatrixPage(string matrixName, int pageIndex, vector<vector<int>> rows, int rowCount, int colStartIdx, int columnCount);
     void writePage();
+};
+
+class TablePage : public Page {
+    string tableName;
+
+    public:
+
+    TablePage();
+    TablePage(string tableName, int pageIndex);
+    TablePage(string tableName, int pageIndex, vector<vector<int>> rows, int rowCount);
 };

@@ -1,4 +1,4 @@
-#include "cursor.h"
+#include "cursorMatrix.h"
 
 /**
  * @brief The Matrix class holds all information related to a loaded matrix. It
@@ -19,14 +19,14 @@ public:
 
     bool blockify();
     bool setStatistics();
-    Matrix();
     Matrix(string matrixName);
     bool load();
     void print();
     void makePermanent();
     bool isPermanent();
-    void getNextPage(Cursor *cursor);
-    Cursor getCursor();
+    void getNextPage(CursorMatrix *cursor);
+    void getNextPointer(CursorMatrix *cursor);
+    CursorMatrix getCursor();
     void unload();
 
     /**

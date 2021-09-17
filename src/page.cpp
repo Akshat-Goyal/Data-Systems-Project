@@ -5,13 +5,25 @@
  */
 Page::Page()
 {
+    logger.log("Page::Page");
     this->pageName = "";
-    this->tableName = "";
     this->pageIndex = -1;
     this->rowCount = 0;
-    this->colStartIdx = 0;
     this->columnCount = 0;
     this->rows.clear();
+}
+
+TablePage::TablePage()
+{
+    logger.log("TablePage::TablePage");
+    this->tableName = "";
+}
+
+MatrixPage::MatrixPage()
+{
+    logger.log("MatrixPage::MatrixPage");
+    this->matrixName = "";
+    this->colStartIdx = 0;
 }
 
 /**
@@ -26,23 +38,90 @@ Page::Page()
  * @param tableName 
  * @param pageIndex 
  */
-Page::Page(string tableName, int pageIndex)
+TablePage::TablePage(string tableName, int pageIndex)
 {
-    logger.log("Page::Page");
+    logger.log("TablePage::TablePage");
     this->tableName = tableName;
     this->pageIndex = pageIndex;
     this->pageName = "../data/temp/" + this->tableName + "_Page" + to_string(pageIndex);
     Table table = *tableCatalogue.getTable(tableName);
-    this->colStartIdx = 0;
     this->columnCount = table.columnCount;
-    uint maxRowCount = table.maxRowsPerBlock;
-    vector<int> row(columnCount, 0);
-    this->rows.assign(maxRowCount, row);
-
-    ifstream fin(pageName, ios::in);
     this->rowCount = table.rowsPerBlockCount[pageIndex];
+    uint maxRowCount = table.maxRowsPerBlock;
+    this->rows.assign(maxRowCount, vector<int>(columnCount));
+    this->fillRows();
+}
+
+TablePage::TablePage(string tableName, int pageIndex, vector<vector<int>> rows, int rowCount)
+{
+    logger.log("TablePage::TablePage");
+    this->tableName = tableName;
+    this->pageIndex = pageIndex;
+    this->rows = rows;
+    this->rowCount = rowCount;
+    this->columnCount = rows[0].size();
+    this->pageName = "../data/temp/"+this->tableName + "_Page" + to_string(pageIndex);
+}
+
+/**
+ * @brief Construct a new Page:: Page object given the matrix name and page
+ * index. When NxN matrix is loaded it is broken up into smaller MxM matrices 
+ * such that each smaller matrix can fit in a block and each block is stored 
+ * in a different file named "<matrixname>_Page<pageindex>". For example, If 
+ * the Page being loaded is of matrix "R" and the pageIndex is 2 then the file 
+ * name is "R_Page2". The page loads the rows (or tuples) into a vector of rows 
+ * (where each row is a vector of integers).
+ *
+ * @param matrixName 
+ * @param pageIndex 
+ */
+MatrixPage::MatrixPage(string matrixName, int pageIndex)
+{
+    logger.log("MatrixPage::MatrixPage");
+    this->matrixName = matrixName;
+    this->pageIndex = pageIndex;
+    this->pageName = "../data/temp/" + this->matrixName + "_Page" + to_string(pageIndex);
+    Matrix matrix = *matrixCatalogue.getMatrix(matrixName);
+    uint maxRowCount = matrix.maxRowsPerBlock;
+    this->rowCount = matrix.dimPerBlockCount[pageIndex].first;
+    this->columnCount = matrix.dimPerBlockCount[pageIndex].second;
+    this->rows.assign(maxRowCount, vector<int>(columnCount));
+    this->fillRows();
+}
+
+MatrixPage::MatrixPage(string matrixName, int pageIndex, vector<vector<int>> rows, int rowCount)
+{
+    logger.log("MatrixPage::MatrixPage");
+    this->matrixName = matrixName;
+    this->pageIndex = pageIndex;
+    this->rows = rows;
+    this->rowCount = rowCount;
+    this->columnCount = rows[0].size();
+    this->pageName = "../data/temp/"+this->matrixName + "_Page" + to_string(pageIndex);
+}
+
+MatrixPage::MatrixPage(string matrixName, int pageIndex, vector<vector<int>> rows, int rowCount, int colStartIdx, int columnCount)
+{
+    logger.log("Page::Page");
+    this->matrixName = matrixName;
+    this->pageIndex = pageIndex;
+    this->rows = rows;
+    this->rowCount = rowCount;
+    this->colStartIdx = colStartIdx;
+    this->columnCount = columnCount;
+    this->pageName = "../data/temp/"+this->matrixName + "_Page" + to_string(pageIndex);
+}
+
+/**
+ * @brief page is loaded into rows
+ * 
+ */
+void Page::fillRows()
+{
+    logger.log("Page::fillRows");
+    ifstream fin(this->pageName, ios::in);
     int number;
-    for (uint rowCounter = 0; rowCounter < this->rowCount; rowCounter++)
+    for (int rowCounter = 0; rowCounter < this->rowCount; rowCounter++)
     {
         for (int columnCounter = 0; columnCounter < columnCount; columnCounter++)
         {
@@ -69,35 +148,32 @@ vector<int> Page::getRow(int rowIndex)
     return this->rows[rowIndex];
 }
 
-Page::Page(string tableName, int pageIndex, vector<vector<int>> rows, int rowCount)
+/**
+ * @brief writes current page contents to file.
+ * 
+ */
+void Page::writePage()
 {
-    logger.log("Page::Page");
-    this->tableName = tableName;
-    this->pageIndex = pageIndex;
-    this->rows = rows;
-    this->rowCount = rowCount;
-    this->colStartIdx = 0;
-    this->columnCount = rows[0].size();
-    this->pageName = "../data/temp/"+this->tableName + "_Page" + to_string(pageIndex);
-}
-
-Page::Page(string tableName, int pageIndex, vector<vector<int>> rows, int rowCount, int colStartIdx, int columnCount)
-{
-    logger.log("Page::Page");
-    this->tableName = tableName;
-    this->pageIndex = pageIndex;
-    this->rows = rows;
-    this->rowCount = rowCount;
-    this->colStartIdx = colStartIdx;
-    this->columnCount = columnCount;
-    this->pageName = "../data/temp/"+this->tableName + "_Page" + to_string(pageIndex);
+    logger.log("Page::writePage");
+    ofstream fout(this->pageName, ios::trunc);
+    for (int rowCounter = 0; rowCounter < this->rowCount; rowCounter++)
+    {
+        for (int columnCounter = 0; columnCounter < this->columnCount; columnCounter++)
+        {
+            if (columnCounter != 0)
+                fout << " ";
+            fout << this->rows[rowCounter][columnCounter];
+        }
+        fout << endl;
+    }
+    fout.close();
 }
 
 /**
  * @brief writes current page contents to file.
  * 
  */
-void Page::writePage()
+void MatrixPage::writePage()
 {
     logger.log("Page::writePage");
     ofstream fout(this->pageName, ios::trunc);
