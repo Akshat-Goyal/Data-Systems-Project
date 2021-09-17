@@ -7,6 +7,7 @@ void executeCommand(){
         case CROSS: executeCROSS(); break;
         case DISTINCT: executeDISTINCT(); break;
         case EXPORT: executeEXPORT(); break;
+        case EXPORTMATRIX: executeEXPORTMATRIX(); break;
         case INDEX: executeINDEX(); break;
         case JOIN: executeJOIN(); break;
         case LIST: executeLIST(); break;

@@ -24,6 +24,7 @@ public:
     Matrix(string matrixName);
     bool load();
     void print();
+    void transpose();
     void makePermanent();
     bool isPermanent();
     void getNextPage(CursorMatrix *cursor);

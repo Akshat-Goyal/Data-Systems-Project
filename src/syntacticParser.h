@@ -9,6 +9,7 @@ enum QueryType
     CROSS,
     DISTINCT,
     EXPORT,
+    EXPORTMATRIX,
     INDEX,
     JOIN,
     LIST,
@@ -113,6 +114,7 @@ bool syntacticParseCLEAR();
 bool syntacticParseCROSS();
 bool syntacticParseDISTINCT();
 bool syntacticParseEXPORT();
+bool syntacticParseEXPORTMATRIX();
 bool syntacticParseINDEX();
 bool syntacticParseJOIN();
 bool syntacticParseLIST();
