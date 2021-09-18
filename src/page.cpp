@@ -80,11 +80,11 @@ MatrixPage::MatrixPage(string matrixName, int pageIndex)
     this->matrixName = matrixName;
     this->pageIndex = pageIndex;
     this->pageName = "../data/temp/" + this->matrixName + "_Page" + to_string(pageIndex);
-    Matrix matrix = *matrixCatalogue.getMatrix(matrixName);
-    uint maxRowCount = matrix.maxRowsPerBlock;
-    this->rowCount = matrix.dimPerBlockCount[pageIndex].first;
-    this->columnCount = matrix.dimPerBlockCount[pageIndex].second;
-    this->rows.assign(maxRowCount, vector<int>(columnCount));
+    Matrix* matrix = matrixCatalogue.getMatrix(matrixName);
+    uint maxRowCount = matrix->maxRowsPerBlock;
+    this->rowCount = matrix->dimPerBlockCount[pageIndex].first;
+    this->columnCount = matrix->dimPerBlockCount[pageIndex].second;
+    this->rows.assign(this->rowCount, vector<int>(this->columnCount));
     this->fillRows();
 }
 
@@ -103,18 +103,16 @@ MatrixPage::MatrixPage(string matrixName, int pageIndex, vector<vector<int>> row
  * @brief Transposes rows of page
  * 
  */
-void MatrixPage::transpose()
+void MatrixPage::transpose(MatrixPage *page)
 {
-    vector<vector<int>> transMat(this->columnCount, vector<int>(this->rowCount));
+    logger.log("MatrixPage::transpose");
     for (int i = 0; i < this->rowCount; i++)
     {
         for (int j = 0; j < this->columnCount; j++)
         {
-            transMat[j][i] = this->rows[i][j];
+            swap(this->rows[i][j], page->rows[j][i]);
         }
     }
-    this->rows = transMat;
-    swap(this->rowCount, this->columnCount);
 }
 
 /**
@@ -128,7 +126,7 @@ void Page::fillRows()
     int number;
     for (int rowCounter = 0; rowCounter < this->rowCount; rowCounter++)
     {
-        for (int columnCounter = 0; columnCounter < columnCount; columnCounter++)
+        for (int columnCounter = 0; columnCounter < this->columnCount; columnCounter++)
         {
             fin >> number;
             this->rows[rowCounter][columnCounter] = number;
@@ -151,27 +149,6 @@ vector<int> Page::getRow(int rowIndex)
     if (rowIndex >= this->rowCount)
         return result;
     return this->rows[rowIndex];
-}
-
-/**
- * @brief Get rows from page
- * 
- * @return vectorvector<int> 
- */
-vector<vector<int>> Page::getRows()
-{
-    return this->rows;
-}
-
-/**
- * @brief Updates rows, row and column count
- * 
- */
-void Page::updateRows(vector<vector<int>> mat, int rowCnt, int colCnt)
-{
-    this->rows = mat;
-    this->rowCount = rowCnt;
-    this->columnCount = colCnt;
 }
 
 /**

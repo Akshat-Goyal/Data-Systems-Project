@@ -9,7 +9,6 @@ class Matrix
 {
     bool blockify();
     bool setStatistics();
-    void transposePage(MatrixPage *page, int blockIdx);
     vector<int> readRowSegment(int columnPointer, int columnsInBlock, ifstream &fin);
 
 public:

@@ -56,7 +56,8 @@ vector<int> CursorMatrix::getNext()
 void CursorMatrix::nextPage(int pageIndex, int pagePointer)
 {
     logger.log("CursorMatrix::nextPage");
-    this->page = *bufferManager.getMatrixPage(this->matrixName, pageIndex);
+    if (this->pageIndex != pageIndex)
+        this->page = *bufferManager.getMatrixPage(this->matrixName, pageIndex);
     this->pageIndex = pageIndex;
     this->pagePointer = pagePointer;
 }

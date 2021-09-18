@@ -29,7 +29,7 @@ TablePage BufferManager::getPage(string tableName, int pageIndex)
  *
  * @param matrixName 
  * @param pageIndex 
- * @return MatrixPage 
+ * @return MatrixPage* 
  */
 MatrixPage* BufferManager::getMatrixPage(string matrixName, int pageIndex)
 {
@@ -65,7 +65,7 @@ bool BufferManager::inPool(string pageName)
  * pool or page type is not table.
  *
  * @param pageName 
- * @return TablePage 
+ * @return TablePage*
  */
 TablePage* BufferManager::getFromPool(string pageName)
 {
@@ -81,7 +81,7 @@ TablePage* BufferManager::getFromPool(string pageName)
  * pool or page type is not matrix.
  *
  * @param pageName 
- * @return MatrixPage 
+ * @return MatrixPage* 
  */
 MatrixPage* BufferManager::getMatrixFromPool(string pageName)
 {
@@ -98,7 +98,7 @@ MatrixPage* BufferManager::getMatrixFromPool(string pageName)
  *
  * @param tableName 
  * @param pageIndex 
- * @return TablePage 
+ * @return TablePage*
  */
 TablePage* BufferManager::insertIntoPool(string tableName, int pageIndex)
 {
@@ -120,7 +120,7 @@ TablePage* BufferManager::insertIntoPool(string tableName, int pageIndex)
  *
  * @param tableName 
  * @param pageIndex 
- * @return MatrixPage 
+ * @return MatrixPage*
  */
 MatrixPage* BufferManager::insertMatrixIntoPool(string matrixName, int pageIndex)
 {

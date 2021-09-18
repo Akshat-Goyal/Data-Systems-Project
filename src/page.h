@@ -14,20 +14,18 @@ class Page{
 
     protected:
 
-    string pageIndex;
-    int columnCount;
-    int rowCount;
-    vector<vector<int>> rows;
     void fillRows();
 
     public:
     
     string pageName = "";
+    string pageIndex;
+    int columnCount;
+    int rowCount;
+    vector<vector<int>> rows;
     Page();
     virtual vector<int> getRow(int rowIndex);
     virtual void writePage();
-    virtual vector<vector<int>> getRows();
-    virtual void updateRows(vector<vector<int>> mat, int rowCnt, int colCnt);
 };
 
 class MatrixPage : public Page {
@@ -38,7 +36,7 @@ class MatrixPage : public Page {
     MatrixPage();
     MatrixPage(string matrixName, int pageIndex);
     MatrixPage(string matrixName, int pageIndex, vector<vector<int>> rows, int rowCount);
-    void transpose();
+    void transpose(MatrixPage *page);
 };
 
 class TablePage : public Page {
