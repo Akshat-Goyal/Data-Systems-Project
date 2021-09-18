@@ -164,12 +164,15 @@ void Matrix::transpose()
                 MatrixPage* page_ij = bufferManager.getMatrixPage(this->matrixName, block_ij);
                 MatrixPage* page_ji = bufferManager.getMatrixPage(this->matrixName, block_ji);
                 page_ij->transpose(page_ji);
+                page_ij->writePage();
+                page_ji->writePage();
             }
             else
             {
                 int block_ij = block_i * this->blocksPerRow + block_j;
                 MatrixPage* page_ij = bufferManager.getMatrixPage(this->matrixName, block_ij);
                 page_ij->transpose(page_ij);
+                page_ij->writePage();
             }
         }
     }
