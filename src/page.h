@@ -36,6 +36,7 @@ class MatrixPage : public Page {
     MatrixPage();
     MatrixPage(string matrixName, int pageIndex);
     MatrixPage(string matrixName, int pageIndex, vector<vector<int>> rows, int rowCount);
+    void transpose();
     void transpose(MatrixPage *page);
 };
 

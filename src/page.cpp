@@ -103,6 +103,22 @@ MatrixPage::MatrixPage(string matrixName, int pageIndex, vector<vector<int>> row
  * @brief Transposes rows of page
  * 
  */
+void MatrixPage::transpose()
+{
+    logger.log("MatrixPage::transpose");
+    for (int i = 0; i < this->rowCount; i++)
+    {
+        for (int j = i + 1; j < this->columnCount; j++)
+        {
+            swap(this->rows[i][j], this->rows[j][i]);
+        }
+    }
+}
+
+/**
+ * @brief Transposes rows of pages
+ * 
+ */
 void MatrixPage::transpose(MatrixPage *page)
 {
     logger.log("MatrixPage::transpose");

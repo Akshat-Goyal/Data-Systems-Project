@@ -171,7 +171,7 @@ void Matrix::transpose()
             {
                 int block_ij = block_i * this->blocksPerRow + block_j;
                 MatrixPage* page_ij = bufferManager.getMatrixPage(this->matrixName, block_ij);
-                page_ij->transpose(page_ij);
+                page_ij->transpose();
                 page_ij->writePage();
             }
         }
@@ -256,29 +256,6 @@ void Matrix::makePermanent()
         for (int seg = 0; seg < this->blocksPerRow; seg++)
             this->writeRow(cursor.getNext(), fout, seg == 0, seg == this->blocksPerRow - 1);
     }
-
-    // vector<vector<int>> rows(this->maxRowsPerBlock, vector<int>(this->columnCount));
-    // for (int rowwiseBlockCounter = 0, blockCounter = 0; rowwiseBlockCounter < this->blocksPerRow; rowwiseBlockCounter++)
-    // {
-    //     int blockRowCount = this->dimPerBlockCount[blockCounter].first;
-    //     for (int columnCounter = 0; columnCounter < this->columnCount;)
-    //     {
-    //         auto blockDim = this->dimPerBlockCount[blockCounter++];
-    //         for (int blockRowCounter = 0; blockRowCounter < blockDim.first; blockRowCounter++)
-    //         {
-    //             auto row = cursor.getNext();
-    //             for (int blockColCounter = 0; blockColCounter < blockDim.second; blockColCounter++)
-    //             {
-    //                 rows[blockRowCounter][columnCounter++] = row[blockColCounter];
-    //             }
-    //         }
-    //     }
-
-    //     for (int blockRowCounter = 0; blockRowCounter < blockRowCount; blockRowCounter)
-    //     {
-    //         this->writeRow(rows[blockRowCounter], fout);
-    //     }
-    // }
     fout.close();
 }
 
