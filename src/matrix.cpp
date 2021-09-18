@@ -141,7 +141,7 @@ bool Matrix::setStatistics()
     stringstream s(line);
     while (getline(s, word, ','))
         this->columnCount++;
-    this->maxRowsPerBlock = (uint)sqrt((BLOCK_COUNT * 1024) / sizeof(int));
+    this->maxRowsPerBlock = (uint)sqrt((BLOCK_SIZE * 1024) / sizeof(int));
     this->blocksPerRow = this->columnCount / this->maxRowsPerBlock + (this->columnCount % this->maxRowsPerBlock != 0);
     this->blockCount = this->blocksPerRow * this->blocksPerRow;
     this->dimPerBlockCount.resize(this->blockCount);
