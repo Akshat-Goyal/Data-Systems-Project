@@ -5,7 +5,7 @@
  * file is available and LOAD command has been called. This command should be
  * followed by calling the load function;
  *
- * @param matrixName 
+ * @param matrixName
  */
 Matrix::Matrix(string matrixName)
 {
@@ -19,8 +19,8 @@ Matrix::Matrix(string matrixName)
  * reads data from the source file, splits it into blocks and updates matrix
  * statistics.
  *
- * @return true if the matrx has been successfully loaded 
- * @return false if an error occurred 
+ * @return true if the matrx has been successfully loaded
+ * @return false if an error occurred
  */
 bool Matrix::load()
 {
@@ -38,7 +38,7 @@ bool Matrix::load()
 
 /**
  * @brief This function splits all the rows and stores them in multiple files of
- * one block size. 
+ * one block size.
  *
  * @return true if successfully blockified
  * @return false otherwise
@@ -50,6 +50,12 @@ bool Matrix::blockify()
         return false;
 
     vector<vector<int>> rows(this->maxRowsPerBlock);
+
+    // TODO: remove the following comments
+    // 45 * (1 + 2 + ... + 45) = 45 ^ 3 (reading row wise)
+    // 45 + 45 + 45 ... + 45 = 45 ^ 2 (reading column wise)
+
+    // TODO: change variable names: block_j to block_right for e.g.
 
     for (int block_j = 0, columnPointer = 0; block_j < this->blocksPerRow; block_j++)
     {
@@ -84,10 +90,12 @@ bool Matrix::blockify()
         }
         columnPointer += columnsInBlock;
     }
+
     this->rowCount /= this->blocksPerRow;
 
     if (this->rowCount == 0)
         return false;
+
     return true;
 }
 
@@ -96,6 +104,8 @@ bool Matrix::blockify()
  *
  * @return vector<int>
  */
+
+// TODO: do not read line, read it word by word
 vector<int> Matrix::readRowSegment(int columnPointer, int columnsInBlock, ifstream &fin)
 {
     logger.log("Matrix::readRowSegment");
@@ -122,8 +132,8 @@ vector<int> Matrix::readRowSegment(int columnPointer, int columnsInBlock, ifstre
 }
 
 /**
- * @brief Function finds total no. of columns (N), max rows per block 
- * (M) and no. of blocks required per row (ceil(N / M)). NxN matrix is 
+ * @brief Function finds total no. of columns (N), max rows per block
+ * (M) and no. of blocks required per row (ceil(N / M)). NxN matrix is
  * split into smaller MxM matrix which can fit in a block.
  *
  */
@@ -141,6 +151,8 @@ bool Matrix::setStatistics()
     stringstream s(line);
     while (getline(s, word, ','))
         this->columnCount++;
+
+    // TODO: sizeof(int) + 1? (1 for spaces)
     this->maxRowsPerBlock = (uint)sqrt((BLOCK_SIZE * 1024) / sizeof(int));
     this->blocksPerRow = this->columnCount / this->maxRowsPerBlock + (this->columnCount % this->maxRowsPerBlock != 0);
     this->blockCount = this->blocksPerRow * this->blocksPerRow;
@@ -156,13 +168,14 @@ void Matrix::transpose()
 {
     for (int block_i = 0; block_i < this->blocksPerRow; block_i++)
     {
-        for (int block_j = 0; block_j < this->blocksPerRow; block_j++)
+        // TODO: confirm starting index of block_j once
+        for (int block_j = block_i; block_j < this->blocksPerRow; block_j++)
         {
             if (block_i != block_j)
             {
                 int block_ij = block_i * this->blocksPerRow + block_j, block_ji = block_j * this->blocksPerRow + block_i;
-                MatrixPage* page_ij = bufferManager.getMatrixPage(this->matrixName, block_ij);
-                MatrixPage* page_ji = bufferManager.getMatrixPage(this->matrixName, block_ji);
+                MatrixPage *page_ij = bufferManager.getMatrixPage(this->matrixName, block_ij);
+                MatrixPage *page_ji = bufferManager.getMatrixPage(this->matrixName, block_ji);
                 page_ij->transpose(page_ji);
                 page_ij->writePage();
                 page_ji->writePage();
@@ -170,7 +183,7 @@ void Matrix::transpose()
             else
             {
                 int block_ij = block_i * this->blocksPerRow + block_j;
-                MatrixPage* page_ij = bufferManager.getMatrixPage(this->matrixName, block_ij);
+                MatrixPage *page_ij = bufferManager.getMatrixPage(this->matrixName, block_ij);
                 page_ij->transpose();
                 page_ij->writePage();
             }
@@ -184,6 +197,8 @@ void Matrix::transpose()
  * the rows are printed.
  *
  */
+
+// TODO: print 20 * 20 instead of 20 * n
 void Matrix::print()
 {
     logger.log("Matrix::print");
@@ -201,7 +216,7 @@ void Matrix::print()
 /**
  * @brief This function moves cursor to next page if next page exists.
  *
- * @param cursor 
+ * @param cursor
  */
 void Matrix::getNextPage(CursorMatrix *cursor)
 {
@@ -214,15 +229,18 @@ void Matrix::getNextPage(CursorMatrix *cursor)
 }
 
 /**
- * @brief This function moves cursor to point to the next segment 
+ * @brief This function moves cursor to point to the next segment
  * of the matrix's row or to the starting of the next row if exists.
  *
- * @param cursor 
+ * @param cursor
  */
 void Matrix::getNextPointer(CursorMatrix *cursor)
 {
     logger.log("Matrix::getNextPointer");
-    
+
+    // TODO: delete following comment
+    // pageIndex = block number of the page, pagePointer = row number within the block
+
     if ((cursor->pageIndex + 1) % this->blocksPerRow == 0)
     {
         if (cursor->pagePointer == this->dimPerBlockCount[cursor->pageIndex].first - 1)
@@ -230,9 +248,12 @@ void Matrix::getNextPointer(CursorMatrix *cursor)
             if (cursor->pageIndex < this->blockCount - 1)
                 cursor->nextPage(cursor->pageIndex + 1);
         }
+
+        // nextPage (dubious variable name): given page index, return the page with that page index
         else
             cursor->nextPage(cursor->pageIndex - this->blocksPerRow + 1, cursor->pagePointer + 1);
     }
+
     else if (cursor->pageIndex < this->blockCount - 1)
         cursor->nextPage(cursor->pageIndex + 1, cursor->pagePointer);
 }
@@ -289,8 +310,8 @@ void Matrix::unload()
 
 /**
  * @brief Function that returns a cursor that reads rows from this matrix
- * 
- * @return CursorMatrix 
+ *
+ * @return CursorMatrix
  */
 CursorMatrix Matrix::getCursor()
 {

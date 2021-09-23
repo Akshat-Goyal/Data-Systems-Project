@@ -5,7 +5,7 @@
  */
 Page::Page()
 {
-    logger.log("Page::Page");
+    logger.log("Page::Pwriteage");
     this->pageName = "";
     this->pageIndex = -1;
     this->rowCount = 0;
@@ -34,8 +34,8 @@ MatrixPage::MatrixPage()
  * loads the rows (or tuples) into a vector of rows (where each row is a vector
  * of integers).
  *
- * @param tableName 
- * @param pageIndex 
+ * @param tableName
+ * @param pageIndex
  */
 TablePage::TablePage(string tableName, int pageIndex)
 {
@@ -59,20 +59,20 @@ TablePage::TablePage(string tableName, int pageIndex, vector<vector<int>> rows, 
     this->rows = rows;
     this->rowCount = rowCount;
     this->columnCount = rows[0].size();
-    this->pageName = "../data/temp/"+this->tableName + "_Page" + to_string(pageIndex);
+    this->pageName = "../data/temp/" + this->tableName + "_Page" + to_string(pageIndex);
 }
 
 /**
  * @brief Construct a new Page:: Page object given the matrix name and page
- * index. When NxN matrix is loaded it is broken up into smaller MxM matrices 
- * such that each smaller matrix can fit in a block and each block is stored 
- * in a different file named "<matrixname>_Page<pageindex>". For example, If 
- * the Page being loaded is of matrix "R" and the pageIndex is 2 then the file 
- * name is "R_Page2". The page loads the rows (or tuples) into a vector of rows 
+ * index. When NxN matrix is loaded it is broken up into smaller MxM matrices
+ * such that each smaller matrix can fit in a block and each block is stored
+ * in a different file named "<matrixname>_Page<pageindex>". For example, If
+ * the Page being loaded is of matrix "R" and the pageIndex is 2 then the file
+ * name is "R_Page2". The page loads the rows (or tuples) into a vector of rows
  * (where each row is a vector of integers).
  *
- * @param matrixName 
- * @param pageIndex 
+ * @param matrixName
+ * @param pageIndex
  */
 MatrixPage::MatrixPage(string matrixName, int pageIndex)
 {
@@ -80,7 +80,7 @@ MatrixPage::MatrixPage(string matrixName, int pageIndex)
     this->matrixName = matrixName;
     this->pageIndex = pageIndex;
     this->pageName = "../data/temp/" + this->matrixName + "_Page" + to_string(pageIndex);
-    Matrix* matrix = matrixCatalogue.getMatrix(matrixName);
+    Matrix *matrix = matrixCatalogue.getMatrix(matrixName);
     uint maxRowCount = matrix->maxRowsPerBlock;
     this->rowCount = matrix->dimPerBlockCount[pageIndex].first;
     this->columnCount = matrix->dimPerBlockCount[pageIndex].second;
@@ -96,12 +96,12 @@ MatrixPage::MatrixPage(string matrixName, int pageIndex, vector<vector<int>> row
     this->rows = rows;
     this->rowCount = rowCount;
     this->columnCount = rows[0].size();
-    this->pageName = "../data/temp/"+this->matrixName + "_Page" + to_string(pageIndex);
+    this->pageName = "../data/temp/" + this->matrixName + "_Page" + to_string(pageIndex);
 }
 
 /**
- * @brief Transposes rows of page
- * 
+ * @brief Transposes rows of a single page
+ *
  */
 void MatrixPage::transpose()
 {
@@ -116,8 +116,9 @@ void MatrixPage::transpose()
 }
 
 /**
- * @brief Transposes rows of pages
- * 
+ * @brief Given two pages, it transposes both of them without using extra memory, by swapping (i, j)
+ * of the first page with (j, i) of the second page
+ *
  */
 void MatrixPage::transpose(MatrixPage *page)
 {
@@ -132,8 +133,8 @@ void MatrixPage::transpose(MatrixPage *page)
 }
 
 /**
- * @brief page is loaded into rows
- * 
+ * @brief A single page is loaded into rows
+ *
  */
 void Page::fillRows()
 {
@@ -153,9 +154,9 @@ void Page::fillRows()
 
 /**
  * @brief Get row from page indexed by rowIndex
- * 
- * @param rowIndex 
- * @return vector<int> 
+ *
+ * @param rowIndex
+ * @return vector<int>
  */
 vector<int> Page::getRow(int rowIndex)
 {
@@ -169,7 +170,7 @@ vector<int> Page::getRow(int rowIndex)
 
 /**
  * @brief writes current page contents to file.
- * 
+ *
  */
 void Page::writePage()
 {

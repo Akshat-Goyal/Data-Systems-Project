@@ -14,16 +14,18 @@ CursorMatrix::CursorMatrix(string matrixName, int pageIndex)
  * current row read from the page is indicated by the pagePointer(points to row
  * in page the cursor is pointing to).
  *
- * @return vector<int> 
+ * @return vector<int>
  */
 vector<int> CursorMatrix::getNextPageRow()
 {
     logger.log("CursorMatrix::getNextPageRow");
     vector<int> result = this->page.getRow(this->pagePointer);
     this->pagePointer++;
-    if(result.empty()){
+    if (result.empty())
+    {
         matrixCatalogue.getMatrix(this->matrixName)->getNextPage(this);
-        if(!this->pagePointer){
+        if (!this->pagePointer)
+        {
             result = this->page.getRow(this->pagePointer);
             this->pagePointer++;
         }
@@ -32,12 +34,12 @@ vector<int> CursorMatrix::getNextPageRow()
 }
 
 /**
- * @brief This function reads the next segment of the matrix's row from the page. 
- * If the row is fully read, it moves to first segment of the next row. The index 
- * of the current segment read from the page is indicated by the pagePointer 
+ * @brief This function reads the next segment of the matrix's row from the page.
+ * If the row is fully read, it moves to first segment of the next row. The index
+ * of the current segment read from the page is indicated by the pagePointer
  * (points to row in page the cursor is pointing to).
  *
- * @return vector<int> 
+ * @return vector<int>
  */
 vector<int> CursorMatrix::getNext()
 {
@@ -51,7 +53,7 @@ vector<int> CursorMatrix::getNext()
  * @brief Function that loads Page indicated by pageIndex. Now the cursor starts
  * reading from the new page from the row pointed by pagePointer.
  *
- * @param pageIndex 
+ * @param pageIndex
  */
 void CursorMatrix::nextPage(int pageIndex, int pagePointer)
 {
@@ -59,5 +61,6 @@ void CursorMatrix::nextPage(int pageIndex, int pagePointer)
     if (this->pageIndex != pageIndex)
         this->page = *bufferManager.getMatrixPage(this->matrixName, pageIndex);
     this->pageIndex = pageIndex;
+
     this->pagePointer = pagePointer;
 }
