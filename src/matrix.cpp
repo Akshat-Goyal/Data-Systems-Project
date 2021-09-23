@@ -261,7 +261,50 @@ bool Matrix::setStatistics()
     this->blockCount = this->blocksPerRow * this->blocksPerRow;
     this->rowCount = this->columnCount;
     this->dimPerBlockCount.assign(this->blockCount, {0, 0});
+    this->isSparseMatrix = this->isSparse();
     return true;
+}
+
+bool Matrix::isSparse()
+{
+    logger.log("Matrix::isSparse");
+    ifstream fin(this->sourceFileName, ios::in);
+
+    string word;
+
+    int numOfZeros = 0;
+
+    for (int i = 0; i < this->columnCount * this->columnCount; i++)
+    {
+        if ((i + 1) % this->columnCount != 0)
+        {
+            // cout << "here " << i << " " << this->columnCount << endl;
+            if (getline(fin, word, ','))
+            {
+                word.erase(remove_if(word.begin(), word.end(), ::isspace), word.end());
+                // cout << word << endl;
+                numOfZeros += (stoi(word) == 0);
+            }
+        }
+
+        else
+        {
+            if (getline(fin, word, '\n'))
+            {
+                // cout << "endl " << i << " " << this->columnCount << endl;
+                word.erase(remove_if(word.begin(), word.end(), ::isspace), word.end());
+                // cout << word << endl;
+                numOfZeros += (stoi(word) == 0);
+            }
+        }
+    }
+
+    float zeros_percentage = (float)numOfZeros / (float)(this->columnCount * this->columnCount);
+    fin.close();
+
+    cout << numOfZeros << " " << zeros_percentage << " " << (int)(zeros_percentage >= SPARSE_PERCENTAGE) << endl;
+
+    return zeros_percentage >= SPARSE_PERCENTAGE;
 }
 
 /**
