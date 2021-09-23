@@ -43,20 +43,15 @@ bool Matrix::load()
  * @return true if successfully blockified
  * @return false otherwise
  */
-bool Matrix::blockify()
+bool Matrix::slowBlockify()
 {
-    logger.log("Matrix::blockify");
+    logger.log("Matrix::slowBlockify");
     if (!this->setStatistics())
         return false;
 
     vector<vector<int>> rows(this->maxRowsPerBlock);
 
-    // TODO: remove the following comments
-    // 45 * (1 + 2 + ... + 45) = 45 ^ 3 (reading row wise)
-    // 45 + 45 + 45 ... + 45 = 45 ^ 2 (reading column wise)
-
     // TODO: change variable names: block_j to block_right for e.g.
-
     for (int block_j = 0, columnPointer = 0; block_j < this->blocksPerRow; block_j++)
     {
         int columnsInBlock = min(this->columnCount - columnPointer, this->maxRowsPerBlock);
@@ -65,11 +60,10 @@ bool Matrix::blockify()
         int block_i = 0, rowCounter = 0;
         while (true)
         {
-            rows[rowCounter] = this->readRowSegment(columnPointer, columnsInBlock, fin);
+            rows[rowCounter] = this->slowReadRowSegment(columnPointer, columnsInBlock, fin);
             if (!rows[rowCounter].size())
                 break;
             rowCounter++;
-            this->rowCount++;
             if (rowCounter == this->maxRowsPerBlock)
             {
                 int blockNum = block_i * this->blocksPerRow + block_j;
@@ -91,8 +85,6 @@ bool Matrix::blockify()
         columnPointer += columnsInBlock;
     }
 
-    this->rowCount /= this->blocksPerRow;
-
     if (this->rowCount == 0)
         return false;
 
@@ -106,9 +98,9 @@ bool Matrix::blockify()
  */
 
 // TODO: do not read line, read it word by word
-vector<int> Matrix::readRowSegment(int columnPointer, int columnsInBlock, ifstream &fin)
+vector<int> Matrix::slowReadRowSegment(int columnPointer, int columnsInBlock, ifstream &fin)
 {
-    logger.log("Matrix::readRowSegment");
+    logger.log("Matrix::slowReadRowSegment");
     vector<int> row;
     string line, word;
     if (!getline(fin, line))
@@ -132,6 +124,117 @@ vector<int> Matrix::readRowSegment(int columnPointer, int columnsInBlock, ifstre
 }
 
 /**
+ * @brief This function splits all the rows and stores them in multiple files of
+ * one block size.
+ *
+ * @return true if successfully blockified
+ * @return false otherwise
+ */
+bool Matrix::blockify()
+{
+    logger.log("Matrix::blockify");
+    if (!this->setStatistics())
+        return false;
+
+    ifstream fin(this->sourceFileName, ios::in);
+
+    for (int row = 0; row < this->rowCount; row++)
+    {
+        for (int block = 0; block < this->blocksPerRow; block++)
+        {
+            int numOfWords = this->maxRowsPerBlock;
+
+            if (block == this->blocksPerRow - 1)
+            {
+                numOfWords = this->columnCount - this->maxRowsPerBlock * (this->blocksPerRow - 1);
+            }
+
+            vector<int> rowSegment = this->readRowSegment(numOfWords, fin, block == (this->blocksPerRow - 1));
+            int pageIndex = (row / this->maxRowsPerBlock) * this->blocksPerRow + block;
+            this->writeRowSegment(rowSegment, pageIndex);
+
+            this->dimPerBlockCount[pageIndex].first++;
+            if (this->dimPerBlockCount[pageIndex].second == 0)
+            {
+                this->dimPerBlockCount[pageIndex].second = numOfWords;
+            }
+        }
+    }
+
+    fin.close();
+
+    if (this->rowCount == 0)
+        return false;
+
+    return true;
+}
+
+/**
+ * @brief This function reads the segment of the row pointed by fin.
+ *
+ * @return vector<int>
+ */
+
+vector<int> Matrix::readRowSegment(int numOfWords, ifstream &fin, bool isLastBlock)
+{
+    logger.log("Matrix::readRowSegment");
+    vector<int> row;
+    string word;
+
+    for (int wordCounter = 0; wordCounter < numOfWords - 1; wordCounter++)
+    {
+        if (getline(fin, word, ','))
+        {
+            word.erase(remove_if(word.begin(), word.end(), ::isspace), word.end());
+            row.push_back(stoi(word));
+        }
+    }
+
+    if (!isLastBlock)
+    {
+        if (getline(fin, word, ','))
+        {
+            word.erase(remove_if(word.begin(), word.end(), ::isspace), word.end());
+            row.push_back(stoi(word));
+        }
+    }
+
+    else
+    {
+        if (getline(fin, word, '\n'))
+        {
+            word.erase(remove_if(word.begin(), word.end(), ::isspace), word.end());
+            row.push_back(stoi(word));
+        }
+    }
+
+    return row;
+}
+
+/**
+ * @brief This function appends a row segment to the page with given index.
+ */
+
+void Matrix::writeRowSegment(vector<int> &rowSegment, int pageIndex)
+{
+    logger.log("Matrix::writeRowSegment");
+
+    string pageName = "../data/temp/" + this->matrixName + "_Page" + to_string(pageIndex);
+
+    ofstream fout;
+    fout.open(pageName, ios::out | ios::app);
+
+    for (int ind = 0; ind < rowSegment.size(); ind++)
+    {
+        if (ind != 0)
+            fout << " ";
+        fout << rowSegment[ind];
+    }
+    fout << endl;
+    fout.close();
+}
+
+/**
  * @brief Function finds total no. of columns (N), max rows per block
  * (M) and no. of blocks required per row (ceil(N / M)). NxN matrix is
  * split into smaller MxM matrix which can fit in a block.
@@ -152,11 +255,12 @@ bool Matrix::setStatistics()
     while (getline(s, word, ','))
         this->columnCount++;
 
-    // TODO: sizeof(int) + 1? (1 for spaces)
+    // TODO: sizeof(int) + 1? (1 for spaces): not needed prolly
     this->maxRowsPerBlock = (uint)sqrt((BLOCK_SIZE * 1024) / sizeof(int));
     this->blocksPerRow = this->columnCount / this->maxRowsPerBlock + (this->columnCount % this->maxRowsPerBlock != 0);
     this->blockCount = this->blocksPerRow * this->blocksPerRow;
-    this->dimPerBlockCount.resize(this->blockCount);
+    this->rowCount = this->columnCount;
+    this->dimPerBlockCount.assign(this->blockCount, {0, 0});
     return true;
 }
 
@@ -198,7 +302,6 @@ void Matrix::transpose()
  *
  */
 
-// TODO: print 20 * 20 instead of 20 * n
 void Matrix::print()
 {
     logger.log("Matrix::print");
@@ -207,8 +310,23 @@ void Matrix::print()
     CursorMatrix cursor = this->getCursor();
     for (int rowCounter = 0; rowCounter < count; rowCounter++)
     {
-        for (int seg = 0; seg < this->blocksPerRow; seg++)
-            this->writeRow(cursor.getNext(), cout, seg == 0, seg == this->blocksPerRow - 1);
+        int remaining = count;
+        bool last = false;
+
+        for (int seg = 0; remaining != 0 && seg < this->blocksPerRow; seg++)
+        {
+            vector<int> nextSegment = cursor.getNext();
+
+            // cout << nextSegment.size() << " " << remaining << endl;
+            if (nextSegment.size() >= remaining)
+            {
+                nextSegment.resize(remaining);
+                last = true;
+            }
+
+            remaining -= nextSegment.size();
+            this->writeRow(nextSegment, cout, seg == 0, last);
+        }
     }
     printRowCount(this->rowCount);
 }
@@ -238,7 +356,6 @@ void Matrix::getNextPointer(CursorMatrix *cursor)
 {
     logger.log("Matrix::getNextPointer");
 
-    // TODO: delete following comment
     // pageIndex = block number of the page, pagePointer = row number within the block
 
     if ((cursor->pageIndex + 1) % this->blocksPerRow == 0)

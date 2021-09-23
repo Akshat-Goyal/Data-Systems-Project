@@ -5,7 +5,7 @@
  */
 Page::Page()
 {
-    logger.log("Page::Pwriteage");
+    logger.log("Page::Page");
     this->pageName = "";
     this->pageIndex = -1;
     this->rowCount = 0;

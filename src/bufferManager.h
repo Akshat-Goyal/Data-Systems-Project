@@ -1,7 +1,7 @@
 #ifndef __BUFFER_MANAGER_H__
 #define __BUFFER_MANAGER_H__
 
-#include"page.h"
+#include "page.h"
 
 /**
  * @brief The BufferManager is responsible for reading pages to the main memory.
@@ -12,32 +12,32 @@
  * although this isn't traditionally how it's done. You can alternatively just
  * random access to the point where a block begins within the same
  * file. In this system we assume that the the sizes of blocks and pages are the
- * same. 
- * 
+ * same.
+ *
  * <p>
  * The buffer can hold multiple pages quantified by BLOCK_COUNT. The
  * buffer manager follows the FIFO replacement policy i.e. the first block to be
  * read in is replaced by the new incoming block. This replacement policy should
  * be transparent to the executors i.e. the executor should not know if a block
- * was previously present in the buffer or was read in from the disk. 
+ * was previously present in the buffer or was read in from the disk.
  * </p>
  *
  */
-class BufferManager{
+class BufferManager
+{
 
-    deque<Page*> pages; 
+    deque<Page *> pages;
     bool inPool(string pageName);
-    TablePage* getFromPool(string pageName);
-    MatrixPage* getMatrixFromPool(string pageName);
-    TablePage* insertIntoPool(string tableName, int pageIndex);
-    MatrixPage* insertMatrixIntoPool(string matrixName, int pageIndex);
+    TablePage *getFromPool(string pageName);
+    MatrixPage *getMatrixFromPool(string pageName);
+    TablePage *insertIntoPool(string tableName, int pageIndex);
+    MatrixPage *insertMatrixIntoPool(string matrixName, int pageIndex);
 
-    public:
-    
+public:
     BufferManager();
     ~BufferManager();
     TablePage getPage(string tableName, int pageIndex);
-    MatrixPage* getMatrixPage(string matrixName, int pageIndex);
+    MatrixPage *getMatrixPage(string matrixName, int pageIndex);
     void deleteFile(string relationName, int pageIndex);
     void deleteFile(string fileName);
     void writePage(string tableName, int pageIndex, vector<vector<int>> rows, int rowCount);

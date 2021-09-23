@@ -1,5 +1,6 @@
 //Server Code
 #include "global.h"
+#include <chrono>
 
 using namespace std;
 
@@ -17,7 +18,14 @@ void doCommand()
 {
     logger.log("doCommand");
     if (syntacticParse() && semanticParse())
+    {
+        auto t_start = std::chrono::high_resolution_clock::now();
         executeCommand();
+        auto t_end = std::chrono::high_resolution_clock::now();
+
+        double elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_start).count();
+        cout << "Time taken: " << fixed << setprecision(3) << elapsed_time_ms / 1000.0 << " (s)";
+    }
     return;
 }
 
@@ -29,7 +37,7 @@ int main(void)
     system("rm -rf ../data/temp");
     system("mkdir ../data/temp");
 
-    while(!cin.eof())
+    while (!cin.eof())
     {
         cout << "\n> ";
         tokenizedQuery.clear();
@@ -37,7 +45,6 @@ int main(void)
         logger.log("\nReading New Command: ");
         getline(cin, command);
         logger.log(command);
-
 
         auto words_begin = std::sregex_iterator(command.begin(), command.end(), delim);
         auto words_end = std::sregex_iterator();

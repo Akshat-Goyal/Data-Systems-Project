@@ -9,7 +9,11 @@ class Matrix
 {
     bool blockify();
     bool setStatistics();
-    vector<int> readRowSegment(int columnPointer, int columnsInBlock, ifstream &fin);
+    vector<int> readRowSegment(int numOfWords, ifstream &fin, bool isLastBlock);
+    void writeRowSegment(vector<int> &rowSegment, int pageIndex);
+
+    bool slowBlockify();
+    vector<int> slowReadRowSegment(int columnPointer, int columnsInBlock, ifstream &fin);
 
 public:
     string sourceFileName = "";
@@ -37,7 +41,7 @@ public:
      * comma seperated format.
      *
      * @tparam T current usaages include int and string
-     * @param row 
+     * @param row
      */
     template <typename T>
     void writeRow(vector<T> row, ostream &fout, bool first = false, bool last = true)
@@ -58,7 +62,7 @@ public:
      * comma seperated format.
      *
      * @tparam T current usaages include int and string
-     * @param row 
+     * @param row
      */
     template <typename T>
     void writeRow(vector<T> row, bool first = false, bool last = true)

@@ -68,7 +68,7 @@ bool BufferManager::inPool(string pageName)
  * @return TablePage*
  */
 
-// TODO: change to getTableFromPool
+// TODO: change name to getTableFromPool
 TablePage *BufferManager::getFromPool(string pageName)
 {
     logger.log("BufferManager::getFromPool");
