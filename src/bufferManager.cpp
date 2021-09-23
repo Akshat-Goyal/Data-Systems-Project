@@ -171,6 +171,13 @@ void BufferManager::writeMatrixPage(string matrixName, int pageIndex, vector<vec
     page.writePage();
 }
 
+void BufferManager::writeMatrixPage(string matrixName, int pageIndex, vector<vector<int>> rows, int rowCount, int colCount)
+{
+    logger.log("BufferManager::writeMatrixPage");
+    MatrixPage page(matrixName, pageIndex, rows, rowCount, colCount);
+    page.writePage();
+}
+
 /**
  * @brief Deletes file names fileName
  *

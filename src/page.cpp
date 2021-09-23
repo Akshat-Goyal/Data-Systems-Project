@@ -99,6 +99,17 @@ MatrixPage::MatrixPage(string matrixName, int pageIndex, vector<vector<int>> row
     this->pageName = "../data/temp/" + this->matrixName + "_Page" + to_string(pageIndex);
 }
 
+MatrixPage::MatrixPage(string matrixName, int pageIndex, vector<vector<int>> rows, int rowCount, int colCount)
+{
+    logger.log("MatrixPage::MatrixPage");
+    this->matrixName = matrixName;
+    this->pageIndex = pageIndex;
+    this->rows = rows;
+    this->rowCount = rowCount;
+    this->columnCount = colCount;
+    this->pageName = "../data/temp/" + this->matrixName + "_Page" + to_string(pageIndex);
+}
+
 /**
  * @brief Transposes rows of a single page
  *

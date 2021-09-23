@@ -136,6 +136,25 @@ bool Matrix::blockify()
     if (!this->setStatistics())
         return false;
 
+    if (this->isSparseMatrix)
+    {
+        this->sparseBlockify();
+    }
+
+    else
+    {
+        this->normalBlockify();
+    }
+
+    if (this->rowCount == 0)
+        return false;
+
+    return true;
+}
+
+void Matrix::normalBlockify()
+{
+    logger.log("Matrix::normalBlockify");
     ifstream fin(this->sourceFileName, ios::in);
 
     for (int row = 0; row < this->rowCount; row++)
@@ -162,11 +181,73 @@ bool Matrix::blockify()
     }
 
     fin.close();
+}
 
-    if (this->rowCount == 0)
-        return false;
+void Matrix::sparseBlockify()
+{
+    logger.log("Matrix::sparseBlockify");
+    ifstream fin(this->sourceFileName, ios::in);
 
-    return true;
+    string word;
+
+    int numAttributes = 3;
+    vector<int> row(numAttributes, 0);
+    vector<vector<int>> rowsInPage(this->maxRowsPerBlock, row);
+    int pageCounter = 0;
+    int curPageIndex = 0;
+
+    for (int i = 0; i < this->columnCount * this->columnCount; i++)
+    {
+        if ((i + 1) % this->columnCount != 0)
+        {
+            if (getline(fin, word, ','))
+            {
+                word.erase(remove_if(word.begin(), word.end(), ::isspace), word.end());
+
+                if (stoi(word) != 0)
+                {
+                    rowsInPage[pageCounter][0] = i / this->columnCount;
+                    rowsInPage[pageCounter][1] = i % this->columnCount;
+                    rowsInPage[pageCounter][2] = stoi(word);
+                    pageCounter++;
+                }
+            }
+        }
+
+        else
+        {
+            if (getline(fin, word, '\n'))
+            {
+                word.erase(remove_if(word.begin(), word.end(), ::isspace), word.end());
+
+                if (stoi(word) != 0)
+                {
+                    rowsInPage[pageCounter][0] = i / this->columnCount;
+                    rowsInPage[pageCounter][1] = i % this->columnCount;
+                    rowsInPage[pageCounter][2] = stoi(word);
+                    pageCounter++;
+                }
+            }
+        }
+
+        if (pageCounter == this->maxRowsPerBlock)
+        {
+            bufferManager.writeMatrixPage(this->matrixName, curPageIndex, rowsInPage, pageCounter, numAttributes);
+            curPageIndex++;
+            // this->rowsPerBlockCount.emplace_back(pageCounter);
+            pageCounter = 0;
+        }
+    }
+
+    if (pageCounter)
+    {
+        bufferManager.writeMatrixPage(this->matrixName, curPageIndex, rowsInPage, pageCounter, numAttributes);
+        curPageIndex++;
+        // this->rowsPerBlockCount.emplace_back(pageCounter);
+        pageCounter = 0;
+    }
+
+    fin.close();
 }
 
 /**
@@ -255,13 +336,25 @@ bool Matrix::setStatistics()
     while (getline(s, word, ','))
         this->columnCount++;
 
-    // TODO: sizeof(int) + 1? (1 for spaces): not needed prolly
-    this->maxRowsPerBlock = (uint)sqrt((BLOCK_SIZE * 1024) / sizeof(int));
-    this->blocksPerRow = this->columnCount / this->maxRowsPerBlock + (this->columnCount % this->maxRowsPerBlock != 0);
-    this->blockCount = this->blocksPerRow * this->blocksPerRow;
-    this->rowCount = this->columnCount;
-    this->dimPerBlockCount.assign(this->blockCount, {0, 0});
     this->isSparseMatrix = this->isSparse();
+
+    if (!this->isSparseMatrix)
+    {
+        // TODO: sizeof(int) + 1? (1 for spaces): not needed prolly
+        this->maxRowsPerBlock = (uint)sqrt((BLOCK_SIZE * 1024) / sizeof(int));
+        this->blocksPerRow = this->columnCount / this->maxRowsPerBlock + (this->columnCount % this->maxRowsPerBlock != 0);
+        this->blockCount = this->blocksPerRow * this->blocksPerRow;
+        this->rowCount = this->columnCount;
+        this->dimPerBlockCount.assign(this->blockCount, {0, 0});
+    }
+
+    else
+    {
+        this->maxRowsPerBlock = (uint)sqrt((BLOCK_SIZE * 1024) / (sizeof(int) * 3));
+        this->rowCount = this->columnCount;
+        this->blockCount = ((this->columnCount * this->columnCount) - this->numOfZeros + this->maxRowsPerBlock - 1) / this->maxRowsPerBlock;
+    }
+
     return true;
 }
 
@@ -278,11 +371,9 @@ bool Matrix::isSparse()
     {
         if ((i + 1) % this->columnCount != 0)
         {
-            // cout << "here " << i << " " << this->columnCount << endl;
             if (getline(fin, word, ','))
             {
                 word.erase(remove_if(word.begin(), word.end(), ::isspace), word.end());
-                // cout << word << endl;
                 numOfZeros += (stoi(word) == 0);
             }
         }
@@ -291,9 +382,7 @@ bool Matrix::isSparse()
         {
             if (getline(fin, word, '\n'))
             {
-                // cout << "endl " << i << " " << this->columnCount << endl;
                 word.erase(remove_if(word.begin(), word.end(), ::isspace), word.end());
-                // cout << word << endl;
                 numOfZeros += (stoi(word) == 0);
             }
         }
@@ -302,7 +391,9 @@ bool Matrix::isSparse()
     float zeros_percentage = (float)numOfZeros / (float)(this->columnCount * this->columnCount);
     fin.close();
 
-    cout << numOfZeros << " " << zeros_percentage << " " << (int)(zeros_percentage >= SPARSE_PERCENTAGE) << endl;
+    // cout << numOfZeros << " " << zeros_percentage << " " << (int)(zeros_percentage >= SPARSE_PERCENTAGE) << endl;
+
+    this->numOfZeros = numOfZeros;
 
     return zeros_percentage >= SPARSE_PERCENTAGE;
 }

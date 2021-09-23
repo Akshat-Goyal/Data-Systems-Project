@@ -12,6 +12,8 @@ class Matrix
     vector<int> readRowSegment(int numOfWords, ifstream &fin, bool isLastBlock);
     void writeRowSegment(vector<int> &rowSegment, int pageIndex);
     bool isSparse();
+    void normalBlockify();
+    void sparseBlockify();
 
     bool slowBlockify();
     vector<int> slowReadRowSegment(int columnPointer, int columnsInBlock, ifstream &fin);
@@ -24,6 +26,7 @@ public:
     uint blockCount = 0;
     uint blocksPerRow = 0;
     uint maxRowsPerBlock = 0;
+    uint numOfZeros = 0;
     bool isSparseMatrix = false;
     float SPARSE_PERCENTAGE = 0.6;
     vector<pair<uint, uint>> dimPerBlockCount;
