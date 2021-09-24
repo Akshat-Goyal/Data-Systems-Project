@@ -7,7 +7,7 @@
  */
 class Cursor{
     public:
-    Page page;
+    TablePage page;
     int pageIndex;
     string tableName;
     int pagePointer;

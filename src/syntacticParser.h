@@ -1,4 +1,5 @@
 #include "tableCatalogue.h"
+#include "matrixCatalogue.h"
 
 using namespace std;
 
@@ -8,11 +9,15 @@ enum QueryType
     CROSS,
     DISTINCT,
     EXPORT,
+    EXPORTMATRIX,
     INDEX,
     JOIN,
     LIST,
     LOAD,
+    LOADMATRIX,
+    TRANSPOSE,
     PRINT,
+    PRINTMATRIX,
     PROJECTION,
     RENAME,
     SELECTION,
@@ -110,11 +115,15 @@ bool syntacticParseCLEAR();
 bool syntacticParseCROSS();
 bool syntacticParseDISTINCT();
 bool syntacticParseEXPORT();
+bool syntacticParseEXPORTMATRIX();
 bool syntacticParseINDEX();
 bool syntacticParseJOIN();
 bool syntacticParseLIST();
 bool syntacticParseLOAD();
+bool syntacticParseLOADMATRIX();
+bool syntacticParseTRANSPOSE();
 bool syntacticParsePRINT();
+bool syntacticParsePRINTMATRIX();
 bool syntacticParsePROJECTION();
 bool syntacticParseRENAME();
 bool syntacticParseSELECTION();

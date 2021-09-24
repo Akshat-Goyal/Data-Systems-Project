@@ -14,7 +14,7 @@ Table::Table()
  * file is available and LOAD command has been called. This command should be
  * followed by calling the load function;
  *
- * @param tableName 
+ * @param tableName
  */
 Table::Table(string tableName)
 {
@@ -28,8 +28,8 @@ Table::Table(string tableName)
  * is encountered. To create the table object both the table name and the
  * columns the table holds should be specified.
  *
- * @param tableName 
- * @param columns 
+ * @param tableName
+ * @param columns
  */
 Table::Table(string tableName, vector<string> columns)
 {
@@ -47,8 +47,8 @@ Table::Table(string tableName, vector<string> columns)
  * reads data from the source file, splits it into blocks and updates table
  * statistics.
  *
- * @return true if the table has been successfully loaded 
- * @return false if an error occurred 
+ * @return true if the table has been successfully loaded
+ * @return false if an error occurred
  */
 bool Table::load()
 {
@@ -68,9 +68,9 @@ bool Table::load()
 
 /**
  * @brief Function extracts column names from the header line of the .csv data
- * file. 
+ * file.
  *
- * @param line 
+ * @param line
  * @return true if column names successfully extracted (i.e. no column name
  * repeats)
  * @return false otherwise
@@ -96,7 +96,7 @@ bool Table::extractColumnNames(string firstLine)
 
 /**
  * @brief This function splits all the rows and stores them in multiple files of
- * one block size. 
+ * one block size.
  *
  * @return true if successfully blockified
  * @return false otherwise
@@ -154,7 +154,7 @@ bool Table::blockify()
  * the number of distinct values present in each column. These statistics are to
  * be used during optimisation.
  *
- * @param row 
+ * @param row
  */
 void Table::updateStatistics(vector<int> row)
 {
@@ -172,9 +172,9 @@ void Table::updateStatistics(vector<int> row)
 /**
  * @brief Checks if the given column is present in this table.
  *
- * @param columnName 
- * @return true 
- * @return false 
+ * @param columnName
+ * @return true
+ * @return false
  */
 bool Table::isColumn(string columnName)
 {
@@ -194,8 +194,8 @@ bool Table::isColumn(string columnName)
  * assumed that checks such as the existence of fromColumnName and the non prior
  * existence of toColumnName are done.
  *
- * @param fromColumnName 
- * @param toColumnName 
+ * @param fromColumnName
+ * @param toColumnName
  */
 void Table::renameColumn(string fromColumnName, string toColumnName)
 {
@@ -235,26 +235,22 @@ void Table::print()
     printRowCount(this->rowCount);
 }
 
-
-
 /**
  * @brief This function returns one row of the table using the cursor object. It
  * returns an empty row is all rows have been read.
  *
- * @param cursor 
- * @return vector<int> 
+ * @param cursor
+ * @return vector<int>
  */
 void Table::getNextPage(Cursor *cursor)
 {
     logger.log("Table::getNext");
 
-        if (cursor->pageIndex < this->blockCount - 1)
-        {
-            cursor->nextPage(cursor->pageIndex+1);
-        }
+    if (cursor->pageIndex < this->blockCount - 1)
+    {
+        cursor->nextPage(cursor->pageIndex + 1);
+    }
 }
-
-
 
 /**
  * @brief called when EXPORT command is invoked to move source file to "data"
@@ -264,7 +260,7 @@ void Table::getNextPage(Cursor *cursor)
 void Table::makePermanent()
 {
     logger.log("Table::makePermanent");
-    if(!this->isPermanent())
+    if (!this->isPermanent())
         bufferManager.deleteFile(this->sourceFileName);
     string newSourceFile = "../data/" + this->tableName + ".csv";
     ofstream fout(newSourceFile, ios::out);
@@ -292,7 +288,7 @@ bool Table::isPermanent()
 {
     logger.log("Table::isPermanent");
     if (this->sourceFileName == "../data/" + this->tableName + ".csv")
-    return true;
+        return true;
     return false;
 }
 
@@ -301,7 +297,8 @@ bool Table::isPermanent()
  * all temporary files created as part of this table
  *
  */
-void Table::unload(){
+void Table::unload()
+{
     logger.log("Table::~unload");
     for (int pageCounter = 0; pageCounter < this->blockCount; pageCounter++)
         bufferManager.deleteFile(this->tableName, pageCounter);
@@ -311,8 +308,8 @@ void Table::unload(){
 
 /**
  * @brief Function that returns a cursor that reads rows from this table
- * 
- * @return Cursor 
+ *
+ * @return Cursor
  */
 Cursor Table::getCursor()
 {
@@ -322,9 +319,9 @@ Cursor Table::getCursor()
 }
 /**
  * @brief Function that returns the index of column indicated by columnName
- * 
- * @param columnName 
- * @return int 
+ *
+ * @param columnName
+ * @return int
  */
 int Table::getColumnIndex(string columnName)
 {
