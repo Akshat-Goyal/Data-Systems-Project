@@ -95,7 +95,7 @@ MatrixPage::MatrixPage(string matrixName, int pageIndex, vector<vector<int>> row
     logger.log("MatrixPage::MatrixPage3");
     this->matrixName = matrixName;
     this->pageIndex = pageIndex;
-    cout << "pageIndex is " << this->pageIndex << " " << pageIndex << endl;
+    // cout << "pageIndex is " << this->pageIndex << " " << pageIndex << endl;
 
     this->rows = rows;
     this->rowCount = rowCount;
@@ -145,11 +145,11 @@ void MatrixPage::sortTwoPages(MatrixPage *page)
 {
     logger.log("MatrixPage::sortTwoPages");
 
-    cout << this->rowCount << " " << page->rowCount << endl;
+    // cout << this->rowCount << " " << page->rowCount << endl;
 
     vector<vector<int>> allRows;
 
-    cout << this->rows.size() << endl;
+    // cout << this->rows.size() << " " << page->rows.size() << endl;
 
     for (int i = 0; i < this->rowCount; i++)
     {
@@ -161,7 +161,7 @@ void MatrixPage::sortTwoPages(MatrixPage *page)
         allRows.push_back(page->rows[i]);
     }
 
-    cout << allRows.size() << " reached midway in sort two pages" << endl;
+    // cout << allRows.size() << " reached midway in sort two pages" << endl;
 
     sort(allRows.begin(), allRows.end(), cmp);
 
@@ -240,7 +240,7 @@ void Page::writePage()
 {
     logger.log("Page::writePage");
 
-    cout << "write page started " << this->pageIndex << " " << this->rowCount << " " << this->columnCount << endl;
+    // cout << "write page started " << this->pageIndex << " " << this->rowCount << " " << this->columnCount << endl;
     ofstream fout(this->pageName, ios::trunc);
     for (int rowCounter = 0; rowCounter < this->rowCount; rowCounter++)
     {
@@ -254,5 +254,5 @@ void Page::writePage()
     }
     fout.close();
 
-    cout << "write page completed " << this->pageIndex << endl;
+    // cout << "write page completed " << this->pageIndex << endl;
 }

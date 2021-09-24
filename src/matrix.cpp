@@ -424,7 +424,6 @@ void Matrix::normalTranspose()
 
     for (int block_i = 0; block_i < this->blocksPerRow; block_i++)
     {
-        // TODO: confirm starting index of block_j once
         for (int block_j = block_i; block_j < this->blocksPerRow; block_j++)
         {
             if (block_i != block_j)
@@ -432,6 +431,8 @@ void Matrix::normalTranspose()
                 int block_ij = block_i * this->blocksPerRow + block_j, block_ji = block_j * this->blocksPerRow + block_i;
                 MatrixPage *page_ij = bufferManager.getMatrixPage(this->matrixName, block_ij);
                 MatrixPage *page_ji = bufferManager.getMatrixPage(this->matrixName, block_ji);
+                page_ij = bufferManager.getMatrixPage(this->matrixName, block_ij);
+
                 page_ij->transpose(page_ji);
                 page_ij->writePage();
                 page_ji->writePage();
@@ -459,20 +460,21 @@ void Matrix::sparseTranspose()
 
     for (int block_i = 0; block_i < this->blockCount; block_i++)
     {
-        MatrixPage *page_i = bufferManager.getMatrixPage(this->matrixName, block_i);
 
         for (int block_j = block_i + 1; block_j < this->blockCount; block_j++)
         {
             MatrixPage *page_j = bufferManager.getMatrixPage(this->matrixName, block_j);
+            MatrixPage *page_i = bufferManager.getMatrixPage(this->matrixName, block_i);
+            page_j = bufferManager.getMatrixPage(this->matrixName, block_j);
 
-            cout << "before sort " << block_i << " " << block_j << " " << this->blockCount << endl;
+            // cout << "before sort " << block_i << " " << block_j << " " << this->blockCount << endl;
             page_i->sortTwoPages(page_j);
-            cout << "after sort " << block_i << " " << block_j << " " << this->blockCount << endl;
+            // cout << "after sort " << block_i << " " << block_j << " " << this->blockCount << endl;
 
+            page_i->writePage();
             page_j->writePage();
         }
 
-        page_i->writePage();
     }
 }
 
@@ -498,7 +500,6 @@ void Matrix::print()
     }
 }
 
-// TODO: buggy code, need to go back to previous pages when jumping from row 0 to row 1
 void Matrix::printNormalMatrix()
 {
     logger.log("Matrix::printNormalMatrix");
