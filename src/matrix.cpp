@@ -510,7 +510,6 @@ void Matrix::printNormalMatrix()
 
         for (int seg = 0; remaining != 0 && seg < this->blocksPerRow; seg++)
         {
-            cout << "seg " << seg << " " << remaining << " " << rowCounter << endl;
             vector<int> nextSegment = cursor.getNext();
 
             if (nextSegment.size() >= remaining)
@@ -520,10 +519,7 @@ void Matrix::printNormalMatrix()
             }
 
             remaining -= nextSegment.size();
-            for (int i = 0; i < nextSegment.size(); i++)
-            {
-                cout << "bruh " << i << " " << nextSegment[i] << " " << remaining << endl;
-            }
+            
             this->writeRow(nextSegment, cout, seg == 0, last);
 
             if (!remaining && seg != this->blocksPerRow - 1 && rowCounter != count - 1)
