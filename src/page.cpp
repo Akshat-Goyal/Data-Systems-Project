@@ -115,6 +115,49 @@ void MatrixPage::transpose()
     }
 }
 
+void MatrixPage::sparseTranspose()
+{
+    logger.log("MatrixPage::sparseTranspose");
+
+    for (int i = 0; i < this->rowCount; i++)
+    {
+        swap(this->rows[i][0], this->rows[i][1]);
+    }
+
+    sort(this->rows.begin(), this->rows.end());
+}
+
+void MatrixPage::sortTwoPages(MatrixPage *page)
+{
+    logger.log("MatrixPage::sortTwoPages");
+
+    vector<vector<int>> allRows;
+
+    for (int i = 0; i < this->rowCount; i++)
+    {
+        allRows.push_back(this->rows[i]);
+    }
+
+    for (int i = 0; i < page->rowCount; i++)
+    {
+        allRows.push_back(page->rows[i]);
+    }
+
+    sort(allRows.begin(), allRows.end());
+
+    for (int i = 0; i < this->rowCount; i++)
+    {
+        this->rows[i] = allRows[i];
+    }
+
+    for (int i = 0; i < page->rowCount; i++)
+    {
+        page->rows[i] = allRows[this->rowCount + i];
+    }
+
+    allRows.clear();
+}
+
 /**
  * @brief Given two pages, it transposes both of them without using extra memory, by swapping (i, j)
  * of the first page with (j, i) of the second page

@@ -37,6 +37,8 @@ public:
     void printNormalMatrix();
     void printSparseMatrix();
     void transpose();
+    void normalTranspose();
+    void sparseTranspose();
     void makePermanent();
     void makeNormalPermanent();
     void makeSparsePermanent();

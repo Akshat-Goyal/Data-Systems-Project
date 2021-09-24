@@ -38,6 +38,8 @@ public:
     // MatrixPage(string matrixName, int pageIndex, vector<vector<int>> rows, int rowCount, int colCount);
     void transpose();
     void transpose(MatrixPage *page);
+    void sparseTranspose();
+    void sortTwoPages(MatrixPage *page);
 };
 
 class TablePage : public Page

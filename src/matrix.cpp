@@ -403,8 +403,25 @@ bool Matrix::isSparse()
  * @brief Transposes matrix by swaping block_ij and block_ji elements for each i, j.
  *
  */
+
 void Matrix::transpose()
 {
+    logger.log("Matrix::transpose");
+    if (this->isSparseMatrix)
+    {
+        this->sparseTranspose();
+    }
+
+    else
+    {
+        this->normalTranspose();
+    }
+}
+
+void Matrix::normalTranspose()
+{
+    logger.log("Matrix::normalTranspose");
+
     for (int block_i = 0; block_i < this->blocksPerRow; block_i++)
     {
         // TODO: confirm starting index of block_j once
@@ -426,6 +443,29 @@ void Matrix::transpose()
                 page_ij->transpose();
                 page_ij->writePage();
             }
+        }
+    }
+}
+
+void Matrix::sparseTranspose()
+{
+    logger.log("Matrix::sparseTranspose");
+    for (int block = 0; block < this->blockCount; block++)
+    {
+        MatrixPage *curPage = bufferManager.getMatrixPage(this->matrixName, block);
+        curPage->sparseTranspose();
+        curPage->writePage();
+    }
+
+    for (int block_i = 0; block_i < this->blockCount; block_i++)
+    {
+        for (int block_j = block_j + 1; block_j < this->blockCount; block_j++)
+        {
+            MatrixPage *page_i = bufferManager.getMatrixPage(this->matrixName, block_i);
+            MatrixPage *page_j = bufferManager.getMatrixPage(this->matrixName, block_j);
+
+            page_i->writePage();
+            page_j->writePage();
         }
     }
 }
