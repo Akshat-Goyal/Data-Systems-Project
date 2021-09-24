@@ -18,7 +18,7 @@ protected:
 
 public:
     string pageName = "";
-    string pageIndex;
+    int pageIndex;
     int columnCount;
     int rowCount;
     vector<vector<int>> rows;

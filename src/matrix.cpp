@@ -350,7 +350,7 @@ bool Matrix::setStatistics()
 
     else
     {
-        this->maxRowsPerBlock = (uint)sqrt((BLOCK_SIZE * 1024) / (sizeof(int) * 3));
+        this->maxRowsPerBlock = (uint)(BLOCK_SIZE * 1024) / (sizeof(int) * 3);
         this->rowCount = this->columnCount;
         this->blockCount = ((this->columnCount * this->columnCount) - this->numOfZeros + this->maxRowsPerBlock - 1) / this->maxRowsPerBlock;
         this->dimPerBlockCount.assign(this->blockCount, {0, 0});
@@ -459,10 +459,14 @@ void Matrix::sparseTranspose()
 
     for (int block_i = 0; block_i < this->blockCount; block_i++)
     {
-        for (int block_j = block_j + 1; block_j < this->blockCount; block_j++)
+        for (int block_j = block_i + 1; block_j < this->blockCount; block_j++)
         {
             MatrixPage *page_i = bufferManager.getMatrixPage(this->matrixName, block_i);
             MatrixPage *page_j = bufferManager.getMatrixPage(this->matrixName, block_j);
+
+            cout << "before sort " << block_i << " " << block_j << " " << this->blockCount << endl;
+            page_i->sortTwoPages(page_j);
+            cout << "after sort " << block_i << " " << block_j << " " << this->blockCount << endl;
 
             page_i->writePage();
             page_j->writePage();
@@ -546,7 +550,7 @@ void Matrix::printSparseMatrix()
         for (int colCounter = 0; colCounter < count; colCounter++)
         {
             int value = 0;
-            if (curTuple[0] == rowCounter && curTuple[1] == colCounter)
+            if (curTuple.size() > 0 && curTuple[0] == rowCounter && curTuple[1] == colCounter)
             {
                 value = curTuple[2];
                 curTuple = cursor.getNext();
@@ -663,7 +667,7 @@ void Matrix::makeSparsePermanent()
         for (int colCounter = 0; colCounter < this->columnCount; colCounter++)
         {
             int value = 0;
-            if (curTuple[0] == rowCounter && curTuple[1] == colCounter)
+            if (curTuple.size() > 0 && curTuple[0] == rowCounter && curTuple[1] == colCounter)
             {
                 value = curTuple[2];
                 curTuple = cursor.getNext();

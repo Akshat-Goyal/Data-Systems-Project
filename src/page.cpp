@@ -79,6 +79,8 @@ MatrixPage::MatrixPage(string matrixName, int pageIndex)
     logger.log("MatrixPage::MatrixPage2");
     this->matrixName = matrixName;
     this->pageIndex = pageIndex;
+
+    // cout << "pageIndex is " << this->pageIndex << " " << pageIndex << endl;
     this->pageName = "../data/temp/" + this->matrixName + "_Page" + to_string(pageIndex);
     Matrix *matrix = matrixCatalogue.getMatrix(matrixName);
     uint maxRowCount = matrix->maxRowsPerBlock;
@@ -93,6 +95,8 @@ MatrixPage::MatrixPage(string matrixName, int pageIndex, vector<vector<int>> row
     logger.log("MatrixPage::MatrixPage3");
     this->matrixName = matrixName;
     this->pageIndex = pageIndex;
+    cout << "pageIndex is " << this->pageIndex << " " << pageIndex << endl;
+
     this->rows = rows;
     this->rowCount = rowCount;
     this->columnCount = rows[0].size();
@@ -115,6 +119,16 @@ void MatrixPage::transpose()
     }
 }
 
+bool cmp(vector<int> a, vector<int> b)
+{
+    if (a[0] == b[0])
+    {
+        return a[1] < b[1];
+    }
+
+    return a[0] < b[0];
+}
+
 void MatrixPage::sparseTranspose()
 {
     logger.log("MatrixPage::sparseTranspose");
@@ -124,12 +138,14 @@ void MatrixPage::sparseTranspose()
         swap(this->rows[i][0], this->rows[i][1]);
     }
 
-    sort(this->rows.begin(), this->rows.end());
+    sort(this->rows.begin(), this->rows.end(), cmp);
 }
 
 void MatrixPage::sortTwoPages(MatrixPage *page)
 {
     logger.log("MatrixPage::sortTwoPages");
+
+    cout << this->rowCount << " " << page->rowCount << endl;
 
     vector<vector<int>> allRows;
 
@@ -143,7 +159,9 @@ void MatrixPage::sortTwoPages(MatrixPage *page)
         allRows.push_back(page->rows[i]);
     }
 
-    sort(allRows.begin(), allRows.end());
+    cout << allRows.size() << " reached midway in sort two pages" << endl;
+
+    sort(allRows.begin(), allRows.end(), cmp);
 
     for (int i = 0; i < this->rowCount; i++)
     {
@@ -231,4 +249,6 @@ void Page::writePage()
         fout << endl;
     }
     fout.close();
+
+    cout << "write page completed " << this->pageIndex << endl;
 }
