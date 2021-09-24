@@ -526,7 +526,7 @@ void Matrix::printNormalMatrix()
             }
             this->writeRow(nextSegment, cout, seg == 0, last);
 
-            if (!remaining && seg != this->blocksPerRow - 1)
+            if (!remaining && seg != this->blocksPerRow - 1 && rowCounter != count - 1)
             {
                 int lastSegBlockNum = cursor.pageIndex - cursor.pageIndex % this->blocksPerRow + this->blocksPerRow - 1;
                 cursor.nextPage(lastSegBlockNum, cursor.pagePointer);

@@ -50,22 +50,6 @@ vector<int> CursorMatrix::getNext()
     if (matrixCatalogue.getMatrix(this->matrixName)->isSparseMatrix)
     {
         return this->getNextPageRow();
-
-        // vector<int> result = this->page.getRow(this->pagePointer);
-        // this->pagePointer++;
-
-        // if (result.empty())
-        // {
-        //     matrixCatalogue.getMatrix(this->matrixName)->getNextPage(this);
-
-        //     if (!this->pagePointer)
-        //     {
-        //         result = this->page.getRow(this->pagePointer);
-        //         this->pagePointer++;
-        //     }
-        // }
-
-        // return result;
     }
 
     else
