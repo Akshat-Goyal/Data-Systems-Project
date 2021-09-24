@@ -35,6 +35,7 @@ MatrixPage *BufferManager::getMatrixPage(string matrixName, int pageIndex)
 {
     logger.log("BufferManager::getMatrixPage");
     string pageName = "../data/temp/" + matrixName + "_Page" + to_string(pageIndex);
+    // cout << matrixName << " " << pageIndex << " reached buffer manager get matrix page" << endl;
     if (this->inPool(pageName))
         return this->getMatrixFromPool(pageName);
     else
@@ -171,12 +172,12 @@ void BufferManager::writeMatrixPage(string matrixName, int pageIndex, vector<vec
     page.writePage();
 }
 
-void BufferManager::writeMatrixPage(string matrixName, int pageIndex, vector<vector<int>> rows, int rowCount, int colCount)
-{
-    logger.log("BufferManager::writeMatrixPage");
-    MatrixPage page(matrixName, pageIndex, rows, rowCount, colCount);
-    page.writePage();
-}
+// void BufferManager::writeMatrixPage(string matrixName, int pageIndex, vector<vector<int>> rows, int rowCount, int colCount)
+// {
+//     logger.log("BufferManager::writeMatrixPage");
+//     MatrixPage page(matrixName, pageIndex, rows, rowCount, colCount);
+//     page.writePage();
+// }
 
 /**
  * @brief Deletes file names fileName

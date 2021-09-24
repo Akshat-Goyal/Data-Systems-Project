@@ -232,18 +232,18 @@ void Matrix::sparseBlockify()
 
         if (pageCounter == this->maxRowsPerBlock)
         {
-            bufferManager.writeMatrixPage(this->matrixName, curPageIndex, rowsInPage, pageCounter, numAttributes);
+            bufferManager.writeMatrixPage(this->matrixName, curPageIndex, rowsInPage, pageCounter);
+            this->dimPerBlockCount[curPageIndex] = {pageCounter, numAttributes};
             curPageIndex++;
-            // this->rowsPerBlockCount.emplace_back(pageCounter);
             pageCounter = 0;
         }
     }
 
     if (pageCounter)
     {
-        bufferManager.writeMatrixPage(this->matrixName, curPageIndex, rowsInPage, pageCounter, numAttributes);
+        bufferManager.writeMatrixPage(this->matrixName, curPageIndex, rowsInPage, pageCounter);
+        this->dimPerBlockCount[curPageIndex] = {pageCounter, numAttributes};
         curPageIndex++;
-        // this->rowsPerBlockCount.emplace_back(pageCounter);
         pageCounter = 0;
     }
 
@@ -353,6 +353,7 @@ bool Matrix::setStatistics()
         this->maxRowsPerBlock = (uint)sqrt((BLOCK_SIZE * 1024) / (sizeof(int) * 3));
         this->rowCount = this->columnCount;
         this->blockCount = ((this->columnCount * this->columnCount) - this->numOfZeros + this->maxRowsPerBlock - 1) / this->maxRowsPerBlock;
+        this->dimPerBlockCount.assign(this->blockCount, {0, 0});
     }
 
     return true;
@@ -519,6 +520,22 @@ void Matrix::makePermanent()
     logger.log("Matrix::makePermanent");
     if (!this->isPermanent())
         bufferManager.deleteFile(this->sourceFileName);
+
+    if (!this->isSparseMatrix)
+    {
+        this->makeNormalPermanent();
+    }
+
+    else
+    {
+        this->makeSparsePermanent();
+    }
+}
+
+void Matrix::makeNormalPermanent()
+{
+    logger.log("Matrix::makeNormalPermanent");
+
     string newSourceFile = "../data/" + this->matrixName + ".csv";
     ofstream fout(newSourceFile, ios::out);
 
@@ -528,6 +545,41 @@ void Matrix::makePermanent()
         for (int seg = 0; seg < this->blocksPerRow; seg++)
             this->writeRow(cursor.getNext(), fout, seg == 0, seg == this->blocksPerRow - 1);
     }
+    fout.close();
+}
+
+void Matrix::makeSparsePermanent()
+{
+    logger.log("Matrix::makeSparsePermanent");
+
+    string newSourceFile = "../data/" + this->matrixName + ".csv";
+    ofstream fout(newSourceFile, ios::out);
+
+    CursorMatrix cursor = this->getCursor();
+    vector<int> curTuple = cursor.getNext();
+
+    for (int rowCounter = 0; rowCounter < this->columnCount; rowCounter++)
+    {
+        for (int colCounter = 0; colCounter < this->columnCount; colCounter++)
+        {
+            int value = 0;
+            if (curTuple[0] == rowCounter && curTuple[1] == colCounter)
+            {
+                value = curTuple[2];
+                curTuple = cursor.getNext();
+            }
+
+            if (colCounter != 0)
+            {
+                fout << ",";
+            }
+
+            fout << value;
+        }
+
+        fout << endl;
+    }
+
     fout.close();
 }
 

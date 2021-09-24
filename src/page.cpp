@@ -15,13 +15,13 @@ Page::Page()
 
 TablePage::TablePage()
 {
-    logger.log("TablePage::TablePage");
+    logger.log("TablePage::TablePage1");
     this->tableName = "";
 }
 
 MatrixPage::MatrixPage()
 {
-    logger.log("MatrixPage::MatrixPage");
+    logger.log("MatrixPage::MatrixPage1");
     this->matrixName = "";
 }
 
@@ -39,7 +39,7 @@ MatrixPage::MatrixPage()
  */
 TablePage::TablePage(string tableName, int pageIndex)
 {
-    logger.log("TablePage::TablePage");
+    logger.log("TablePage::TablePage2");
     this->tableName = tableName;
     this->pageIndex = pageIndex;
     this->pageName = "../data/temp/" + this->tableName + "_Page" + to_string(pageIndex);
@@ -53,7 +53,7 @@ TablePage::TablePage(string tableName, int pageIndex)
 
 TablePage::TablePage(string tableName, int pageIndex, vector<vector<int>> rows, int rowCount)
 {
-    logger.log("TablePage::TablePage");
+    logger.log("TablePage::TablePage3");
     this->tableName = tableName;
     this->pageIndex = pageIndex;
     this->rows = rows;
@@ -76,7 +76,7 @@ TablePage::TablePage(string tableName, int pageIndex, vector<vector<int>> rows, 
  */
 MatrixPage::MatrixPage(string matrixName, int pageIndex)
 {
-    logger.log("MatrixPage::MatrixPage");
+    logger.log("MatrixPage::MatrixPage2");
     this->matrixName = matrixName;
     this->pageIndex = pageIndex;
     this->pageName = "../data/temp/" + this->matrixName + "_Page" + to_string(pageIndex);
@@ -90,23 +90,12 @@ MatrixPage::MatrixPage(string matrixName, int pageIndex)
 
 MatrixPage::MatrixPage(string matrixName, int pageIndex, vector<vector<int>> rows, int rowCount)
 {
-    logger.log("MatrixPage::MatrixPage");
+    logger.log("MatrixPage::MatrixPage3");
     this->matrixName = matrixName;
     this->pageIndex = pageIndex;
     this->rows = rows;
     this->rowCount = rowCount;
     this->columnCount = rows[0].size();
-    this->pageName = "../data/temp/" + this->matrixName + "_Page" + to_string(pageIndex);
-}
-
-MatrixPage::MatrixPage(string matrixName, int pageIndex, vector<vector<int>> rows, int rowCount, int colCount)
-{
-    logger.log("MatrixPage::MatrixPage");
-    this->matrixName = matrixName;
-    this->pageIndex = pageIndex;
-    this->rows = rows;
-    this->rowCount = rowCount;
-    this->columnCount = colCount;
     this->pageName = "../data/temp/" + this->matrixName + "_Page" + to_string(pageIndex);
 }
 
@@ -152,6 +141,7 @@ void Page::fillRows()
     logger.log("Page::fillRows");
     ifstream fin(this->pageName, ios::in);
     int number;
+
     for (int rowCounter = 0; rowCounter < this->rowCount; rowCounter++)
     {
         for (int columnCounter = 0; columnCounter < this->columnCount; columnCounter++)

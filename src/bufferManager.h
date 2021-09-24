@@ -42,7 +42,7 @@ public:
     void deleteFile(string fileName);
     void writePage(string tableName, int pageIndex, vector<vector<int>> rows, int rowCount);
     void writeMatrixPage(string matrixName, int pageIndex, vector<vector<int>> rows, int rowCount);
-    void writeMatrixPage(string matrixName, int pageIndex, vector<vector<int>> rows, int rowCount, int colCount); // this is for sparse matrix storage, colCount = 3
+    // void writeMatrixPage(string matrixName, int pageIndex, vector<vector<int>> rows, int rowCount, int colCount); // this is for sparse matrix storage, colCount = 3
 };
 
 #endif

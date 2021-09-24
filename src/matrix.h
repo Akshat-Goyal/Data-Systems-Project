@@ -36,6 +36,8 @@ public:
     void print();
     void transpose();
     void makePermanent();
+    void makeNormalPermanent();
+    void makeSparsePermanent();
     bool isPermanent();
     void getNextPage(CursorMatrix *cursor);
     void getNextPointer(CursorMatrix *cursor);
@@ -56,7 +58,7 @@ public:
         for (int columnCounter = 0; columnCounter < row.size(); columnCounter++)
         {
             if (!first || columnCounter != 0)
-                fout << ", ";
+                fout << ",";
             fout << row[columnCounter];
         }
         if (last)
