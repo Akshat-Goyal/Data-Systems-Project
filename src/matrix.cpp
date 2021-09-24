@@ -459,18 +459,20 @@ void Matrix::sparseTranspose()
 
     for (int block_i = 0; block_i < this->blockCount; block_i++)
     {
+        MatrixPage *page_i = bufferManager.getMatrixPage(this->matrixName, block_i);
+
         for (int block_j = block_i + 1; block_j < this->blockCount; block_j++)
         {
-            MatrixPage *page_i = bufferManager.getMatrixPage(this->matrixName, block_i);
             MatrixPage *page_j = bufferManager.getMatrixPage(this->matrixName, block_j);
 
             cout << "before sort " << block_i << " " << block_j << " " << this->blockCount << endl;
             page_i->sortTwoPages(page_j);
             cout << "after sort " << block_i << " " << block_j << " " << this->blockCount << endl;
 
-            page_i->writePage();
             page_j->writePage();
         }
+
+        page_i->writePage();
     }
 }
 

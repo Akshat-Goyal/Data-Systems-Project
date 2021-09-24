@@ -119,7 +119,7 @@ void MatrixPage::transpose()
     }
 }
 
-bool cmp(vector<int> a, vector<int> b)
+bool cmp(const vector<int> &a, const vector<int> &b)
 {
     if (a[0] == b[0])
     {
@@ -149,6 +149,8 @@ void MatrixPage::sortTwoPages(MatrixPage *page)
 
     vector<vector<int>> allRows;
 
+    cout << this->rows.size() << endl;
+
     for (int i = 0; i < this->rowCount; i++)
     {
         allRows.push_back(this->rows[i]);
@@ -173,7 +175,7 @@ void MatrixPage::sortTwoPages(MatrixPage *page)
         page->rows[i] = allRows[this->rowCount + i];
     }
 
-    allRows.clear();
+    // allRows.clear();
 }
 
 /**
@@ -237,6 +239,8 @@ vector<int> Page::getRow(int rowIndex)
 void Page::writePage()
 {
     logger.log("Page::writePage");
+
+    cout << "write page started " << this->pageIndex << " " << this->rowCount << " " << this->columnCount << endl;
     ofstream fout(this->pageName, ios::trunc);
     for (int rowCounter = 0; rowCounter < this->rowCount; rowCounter++)
     {
