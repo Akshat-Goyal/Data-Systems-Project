@@ -34,6 +34,8 @@ public:
     Matrix(string matrixName);
     bool load();
     void print();
+    void printNormalMatrix();
+    void printSparseMatrix();
     void transpose();
     void makePermanent();
     void makeNormalPermanent();

@@ -440,6 +440,22 @@ void Matrix::transpose()
 void Matrix::print()
 {
     logger.log("Matrix::print");
+
+    if (this->isSparseMatrix)
+    {
+        this->printSparseMatrix();
+    }
+
+    else
+    {
+        this->printNormalMatrix();
+    }
+}
+
+// TODO: buggy code, need to go back to previous pages when jumping from row 0 to row 1
+void Matrix::printNormalMatrix()
+{
+    logger.log("Matrix::printNormalMatrix");
     uint count = min((long long)PRINT_COUNT, this->rowCount);
 
     CursorMatrix cursor = this->getCursor();
@@ -450,9 +466,9 @@ void Matrix::print()
 
         for (int seg = 0; remaining != 0 && seg < this->blocksPerRow; seg++)
         {
+            cout << "seg " << seg << " " << remaining << " " << rowCounter << endl;
             vector<int> nextSegment = cursor.getNext();
 
-            // cout << nextSegment.size() << " " << remaining << endl;
             if (nextSegment.size() >= remaining)
             {
                 nextSegment.resize(remaining);
@@ -460,9 +476,53 @@ void Matrix::print()
             }
 
             remaining -= nextSegment.size();
+            for (int i = 0; i < nextSegment.size(); i++)
+            {
+                cout << "bruh " << i << " " << nextSegment[i] << " " << remaining << endl;
+            }
             this->writeRow(nextSegment, cout, seg == 0, last);
         }
     }
+    printRowCount(this->rowCount);
+}
+
+void Matrix::printSparseMatrix()
+{
+    logger.log("Matrix::printSparseMatrix");
+    uint count = min((long long)PRINT_COUNT, this->rowCount);
+
+    CursorMatrix cursor = this->getCursor();
+    vector<int> curTuple = cursor.getNext();
+
+    while (curTuple.size() > 0 && curTuple[1] >= count)
+    {
+        curTuple = cursor.getNext();
+    }
+
+    for (int rowCounter = 0; rowCounter < count; rowCounter++)
+    {
+        vector<int> curRow;
+
+        for (int colCounter = 0; colCounter < count; colCounter++)
+        {
+            int value = 0;
+            if (curTuple[0] == rowCounter && curTuple[1] == colCounter)
+            {
+                value = curTuple[2];
+                curTuple = cursor.getNext();
+
+                while (curTuple.size() > 0 && curTuple[1] >= count)
+                {
+                    curTuple = cursor.getNext();
+                }
+            }
+
+            curRow.push_back(value);
+        }
+
+        this->writeRow(curRow, cout, 1, 1);
+    }
+
     printRowCount(this->rowCount);
 }
 
