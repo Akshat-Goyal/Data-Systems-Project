@@ -1,0 +1,5 @@
+src/server
+src/log
+src/*.o
+src/executors/*.o
+data/LM*.csv
