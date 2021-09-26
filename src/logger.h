@@ -9,6 +9,9 @@ typedef unsigned int uint;
 
 class Logger
 {
+    // Turn it on if you want to check the log. It is off by default
+    bool TO_LOG = false;
+
     string logFile = "log";
     ofstream fout;
 
