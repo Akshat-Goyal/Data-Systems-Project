@@ -129,13 +129,13 @@ Let $p$ be the percentage of sparseness of the matrix.
 
 Expected number of non-zero elements $NZ = (1 - p) * N * N$.
 
-Number of bytes required to store non-zero elements $B_1 = 3 * NZ * 8 = 24 * (1 - p) * N * N$
+Number of bytes required to store non-zero elements $B_1 = 3 * NZ * 4 = 12 * (1 - p) * N * N$
 
-Number of bytes required to store the matrix using the normal representation $B_2 = 8 * N * N$
+Number of bytes required to store the matrix using the normal representation $B_2 = 4 * N * N$
 
 The compression ratio will be the number of bytes required by normal representation divided by the number of bytes required for sparse representation.
 
-Hence, the compression ratio $C = \frac{B_2}{B_1} = \frac{8 * N * N}{24 * (1 - p) * N * N}$
+Hence, the compression ratio $C = \frac{B_2}{B_1} = \frac{4 * N * N}{12 * (1 - p) * N * N}$
 $C = \frac{1}{3 * (1 - p)}$
 
 For example
