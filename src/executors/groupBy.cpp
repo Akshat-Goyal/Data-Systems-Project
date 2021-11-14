@@ -62,5 +62,54 @@ void executeGROUPBY()
 {
 	logger.log("executeGROUPBY");
 
+	Table table = *tableCatalogue.getTable(parsedQuery.groupByRelationName);
+
+	Cursor cursor = table.getCursor();
+	vector<int> row = cursor.getNext();
+
+	map<int, int> resultTable;
+	map<int, int> countRowsPerGroupingAttribute;
+
+	int groupingAttributeIndex = table.getColumnIndex(parsedQuery.groupByGroupingAttribute);
+	int aggregateAttributeIndex = table.getColumnIndex(parsedQuery.groupByAggregateAttribute);
+
+	while (!row.empty())
+	{
+		if (parsedQuery.groupByAggregateOperator == "MAX" || parsedQuery.groupByAggregateOperator == "MIN")
+		{
+			if (resultTable.find(row[groupingAttributeIndex]) == resultTable.end())
+			{
+				resultTable[row[groupingAttributeIndex]] = row[aggregateAttributeIndex];
+			}
+
+			if (parsedQuery.groupByAggregateOperator == "MAX")
+			{
+				resultTable[row[groupingAttributeIndex]] = max(resultTable[row[groupingAttributeIndex]], row[aggregateAttributeIndex]);
+			}
+
+			else
+			{
+				resultTable[row[groupingAttributeIndex]] = min(resultTable[row[groupingAttributeIndex]], row[aggregateAttributeIndex]);
+			}
+		}
+
+		else
+		{
+			resultTable[row[groupingAttributeIndex]] += row[aggregateAttributeIndex];
+
+			if (parsedQuery.groupByAggregateOperator == "AVG")
+			{
+				countRowsPerGroupingAttribute[row[groupingAttributeIndex]]++;
+			}
+		}
+
+		row = cursor.getNext();
+	}
+
+	vector<string> columnList;
+	columnList.push_back(parsedQuery.groupByGroupingAttribute);
+	columnList.push_back(parsedQuery.groupByAggregateOperator + parsedQuery.groupByAggregateAttribute);
+	Table *resultantTable = new Table(parsedQuery.groupByResultRelationName, columnList);
+
 	return;
 }
