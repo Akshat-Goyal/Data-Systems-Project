@@ -90,6 +90,12 @@ void ParsedQuery::clear()
     this->joinFirstColumnName = "";
     this->joinSecondColumnName = "";
 
+    this->groupByResultRelationName = "";
+    this->groupByGroupingAttribute = "";
+    this->groupByRelationName = "";
+    this->groupByAggregateOperator = "";
+    this->groupByAggregateAttribute = "";
+
     this->loadRelationName = "";
 
     this->printRelationName = "";
