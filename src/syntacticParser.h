@@ -33,6 +33,13 @@ enum BinaryOperator
     NO_BINOP_CLAUSE
 };
 
+enum JoinAlgorithm
+{
+    NESTED,
+    PARTHASH,
+    NO_JOIN_ALGO_CLAUSE
+};
+
 enum SortingStrategy
 {
     ASC,
@@ -69,11 +76,13 @@ public:
     string indexRelationName = "";
 
     BinaryOperator joinBinaryOperator = NO_BINOP_CLAUSE;
+    JoinAlgorithm joinAlgorithm = NO_JOIN_ALGO_CLAUSE;
     string joinResultRelationName = "";
     string joinFirstRelationName = "";
     string joinSecondRelationName = "";
     string joinFirstColumnName = "";
     string joinSecondColumnName = "";
+    int joinBufferSize = 0;
 
     string groupByResultRelationName = "";
     string groupByGroupingAttribute = "";
