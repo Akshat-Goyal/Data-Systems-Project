@@ -127,5 +127,7 @@ void executeGROUPBY()
 	resultantTable->blockify();
 	tableCatalogue.insertTable(resultantTable);
 
+	//TODO: check if resultantTable needs to be deleted or not
+
 	return;
 }
