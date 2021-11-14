@@ -1,0 +1,10 @@
+src/server
+src/log
+src/*.o
+src/executors/*.o
+data/LM*.csv
+data/SM*.csv
+data/gen*
+data/transpose*
+data/a.out
+data/temp/*
