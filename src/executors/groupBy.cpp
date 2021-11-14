@@ -111,5 +111,21 @@ void executeGROUPBY()
 	columnList.push_back(parsedQuery.groupByAggregateOperator + parsedQuery.groupByAggregateAttribute);
 	Table *resultantTable = new Table(parsedQuery.groupByResultRelationName, columnList);
 
+	for (auto it : resultTable)
+	{
+		if (parsedQuery.groupByAggregateOperator == "AVG")
+		{
+			resultantTable->writeRow<int>({it.first, it.second / countRowsPerGroupingAttribute[it.first]});
+		}
+
+		else
+		{
+			resultantTable->writeRow<int>({it.first, it.second});
+		}
+	}
+
+	resultantTable->blockify();
+	tableCatalogue.insertTable(resultantTable);
+
 	return;
 }
