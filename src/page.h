@@ -12,7 +12,6 @@
 
 class Page
 {
-
     string tableName;
     int pageIndex;
     int columnCount;

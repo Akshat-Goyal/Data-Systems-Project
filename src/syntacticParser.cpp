@@ -23,9 +23,9 @@ bool syntacticParse()
         return syntacticParsePRINT();
     else if (possibleQueryType == "RENAME")
         return syntacticParseRENAME();
-    else if(possibleQueryType == "EXPORT")
+    else if (possibleQueryType == "EXPORT")
         return syntacticParseEXPORT();
-    else if(possibleQueryType == "SOURCE")
+    else if (possibleQueryType == "SOURCE")
         return syntacticParseSOURCE();
     else
     {
@@ -42,6 +42,8 @@ bool syntacticParse()
             return syntacticParseSELECTION();
         else if (possibleQueryType == "JOIN")
             return syntacticParseJOIN();
+        else if (possibleQueryType == "GROUP")
+            return syntacticParseGROUPBY();
         else if (possibleQueryType == "CROSS")
             return syntacticParseCROSS();
         else if (possibleQueryType == "DISTINCT")
@@ -120,9 +122,9 @@ void ParsedQuery::clear()
  * @brief Checks to see if source file exists. Called when LOAD command is
  * invoked.
  *
- * @param tableName 
- * @return true 
- * @return false 
+ * @param tableName
+ * @return true
+ * @return false
  */
 bool isFileExists(string tableName)
 {
@@ -135,11 +137,12 @@ bool isFileExists(string tableName)
  * @brief Checks to see if source file exists. Called when SOURCE command is
  * invoked.
  *
- * @param tableName 
- * @return true 
- * @return false 
+ * @param tableName
+ * @return true
+ * @return false
  */
-bool isQueryFile(string fileName){
+bool isQueryFile(string fileName)
+{
     fileName = "../data/" + fileName + ".ra";
     struct stat buffer;
     return (stat(fileName.c_str(), &buffer) == 0);
