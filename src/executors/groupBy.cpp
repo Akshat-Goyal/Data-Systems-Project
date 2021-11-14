@@ -34,6 +34,28 @@ bool syntacticParseGROUPBY()
 bool semanticParseGROUPBY()
 {
 	logger.log("semanticParseGROUPBY");
+
+	if (tableCatalogue.isTable(parsedQuery.groupByResultRelationName))
+	{
+		cout << "SEMANTIC ERROR: Resultant relation already exists" << endl;
+		return false;
+	}
+
+	if (!tableCatalogue.isTable(parsedQuery.groupByRelationName))
+	{
+		cout << "SEMANTIC ERROR: Relation doesn't exist" << endl;
+		return false;
+	}
+
+	Table table = *tableCatalogue.getTable(parsedQuery.groupByRelationName);
+
+	if (!table.isColumn(parsedQuery.groupByGroupingAttribute) || !table.isColumn(parsedQuery.groupByAggregateAttribute))
+	{
+		cout << "SEMANTIC ERROR: Column doesn't exist in relation";
+		return false;
+	}
+
+	return true;
 }
 
 void executeGROUPBY()
