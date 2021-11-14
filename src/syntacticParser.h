@@ -75,6 +75,12 @@ public:
     string joinFirstColumnName = "";
     string joinSecondColumnName = "";
 
+    string groupByResultRelationName = "";
+    string groupByGroupingAttribute = "";
+    string groupByRelationName = "";
+    string groupByAggregateOperator = "";
+    string groupByAggregateAttribute = "";
+
     string loadRelationName = "";
 
     string printRelationName = "";
