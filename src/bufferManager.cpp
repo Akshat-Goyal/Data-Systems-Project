@@ -20,7 +20,10 @@ Page BufferManager::getPage(string tableName, int pageIndex)
     if (this->inPool(pageName))
         return this->getFromPool(pageName);
     else
+    {
+        BLOCK_ACCESS_COUNT++;
         return this->insertIntoPool(tableName, pageIndex);
+    }
 }
 
 /**
@@ -88,6 +91,7 @@ Page BufferManager::insertIntoPool(string tableName, int pageIndex)
 void BufferManager::writePage(string tableName, int pageIndex, vector<vector<int>> rows, int rowCount)
 {
     logger.log("BufferManager::writePage");
+    BLOCK_ACCESS_COUNT++;
     Page page(tableName, pageIndex, rows, rowCount);
     page.writePage();
 }

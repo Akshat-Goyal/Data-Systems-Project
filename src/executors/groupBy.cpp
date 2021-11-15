@@ -127,5 +127,7 @@ void executeGROUPBY()
 	resultantTable->blockify();
 	tableCatalogue.insertTable(resultantTable);
 
+	cout << "Block access: " << BLOCK_ACCESS_COUNT << endl;
+
 	return;
 }

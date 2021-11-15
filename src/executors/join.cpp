@@ -118,7 +118,6 @@ void executedNestedJoin()
     }
 
     Cursor cursor1 = table1.getCursor();
-    Cursor cursor2 = table2.getCursor();
 	int joinFirstColumnIndex = table1.getColumnIndex(parsedQuery.joinFirstColumnName);
 	int joinSecondColumnIndex = table2.getColumnIndex(parsedQuery.joinSecondColumnName);
 
@@ -141,6 +140,7 @@ void executedNestedJoin()
         if (table1Records.empty())
             break;
 
+        Cursor cursor2 = table2.getCursor();
         while (true)
         {
             vector<int> row = cursor2.getNextRowOfCurPage();
@@ -202,12 +202,15 @@ void executeJOIN()
 {
     logger.log("executeJOIN");
 
-    if (parsedQuery.joinAlgorithm == NESTED) 
+    if (parsedQuery.joinAlgorithm == NESTED)
+    {
         executedNestedJoin();
+        cout << "Block access: " << BLOCK_ACCESS_COUNT << endl;
+    }
     else
     {
         cout << "No implementation found for part hash join" << endl;
     }
-    
+
     return;
 }
