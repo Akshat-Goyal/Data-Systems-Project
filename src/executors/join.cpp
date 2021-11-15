@@ -94,21 +94,36 @@ bool semanticParseJOIN()
     return true;
 }
 
+Table* createJoinTable(Table *table1, Table *table2)
+{
+    vector<string> columnList = table1->columns;
+    columnList.insert(columnList.end(), table2->columns.begin(), table2->columns.end());
+	return new Table(parsedQuery.joinResultRelationName, columnList);
+}
+
 void executedNestedJoin()
 {
     logger.log("executeNestedJoin");
 
     Table table1 = *tableCatalogue.getTable(parsedQuery.joinFirstRelationName);
     Table table2 = *tableCatalogue.getTable(parsedQuery.joinSecondRelationName);
+	Table *resultantTable = createJoinTable(&table1, &table2);
 
-    vector<string> columnList = table1.columns;
-    columnList.insert(columnList.end(), table2.columns.begin(), table2.columns.end());
-	Table *resultantTable = new Table(parsedQuery.joinResultRelationName, columnList);
+    bool isTable1Outside = true;
+    if (table1.blockCount > table2.blockCount)
+    {
+        isTable1Outside = false;
+        swap(table1, table2);
+        swap(parsedQuery.joinFirstColumnName, parsedQuery.joinSecondColumnName);
+    }
 
     Cursor cursor1 = table1.getCursor();
     Cursor cursor2 = table2.getCursor();
 	int joinFirstColumnIndex = table1.getColumnIndex(parsedQuery.joinFirstColumnName);
 	int joinSecondColumnIndex = table2.getColumnIndex(parsedQuery.joinSecondColumnName);
+
+    int rowCounter = 0;
+    vector<vector<int>> resultantRows(resultantTable->maxRowsPerBlock, vector<int>(resultantTable->columnCount, 0));
 
     while (true)
     {
@@ -135,8 +150,27 @@ void executedNestedJoin()
                 for (auto itr = it.first; itr != it.second; itr++)
                 {
                     vector<int> resultantRow = itr->second;
-                    resultantRow.insert(resultantRow.end(), row.begin(), row.end());
-                    resultantTable->writeRow<int>(resultantRow);
+                    if (isTable1Outside)
+                    {
+                        resultantRow = itr->second;
+                        resultantRow.insert(resultantRow.end(), row.begin(), row.end());
+                    }
+                    else
+                    {
+                        resultantRow = row;
+                        resultantRow.insert(resultantRow.end(), itr->second.begin(), itr->second.end());
+                    }
+
+                    resultantRows[rowCounter++] = resultantRow;
+                    if (rowCounter == resultantTable->maxRowsPerBlock)
+                    {
+                        bufferManager.writePage(resultantTable->tableName, resultantTable->blockCount, resultantRows, rowCounter);
+                        resultantTable->rowCount += rowCounter;
+                        resultantTable->blockCount++;
+                        resultantTable->rowsPerBlockCount.emplace_back(rowCounter);
+                        rowCounter = 0;
+                    }
+                    // resultantTable->writeRow<int>(resultantRow);
                 }
                 row = cursor2.getNextRowOfCurPage();
             }
@@ -144,8 +178,17 @@ void executedNestedJoin()
                 break;
         }
     }
+    if (rowCounter)
+    {
+        bufferManager.writePage(resultantTable->tableName, resultantTable->blockCount, resultantRows, rowCounter);
+        resultantTable->rowCount += rowCounter;
+        resultantTable->blockCount++;
+        resultantTable->rowsPerBlockCount.emplace_back(rowCounter);
+        rowCounter = 0;
+    }
 
-    if(resultantTable->blockify())
+    // if(resultantTable->blockify())
+    if (resultantTable->rowCount)
         tableCatalogue.insertTable(resultantTable);
     else{
         resultantTable->unload();
