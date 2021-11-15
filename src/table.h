@@ -46,7 +46,7 @@ public:
     void print();
     void makePermanent();
     bool isPermanent();
-    void getNextPage(Cursor *cursor);
+    bool getNextPage(Cursor *cursor);
     Cursor getCursor();
     int getColumnIndex(string columnName);
     void unload();
