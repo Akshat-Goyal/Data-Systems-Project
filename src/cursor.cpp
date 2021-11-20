@@ -14,11 +14,11 @@ Cursor::Cursor(string tableName, int pageIndex)
  * current row read from the page is indicated by the pagePointer(points to row
  * in page the cursor is pointing to).
  *
- * @return vector<int> 
+ * @return vector<int>
  */
 vector<int> Cursor::getNextRowOfCurPage()
 {
-    logger.log("Cursor::geNextRowOfCurPage");
+    logger.log("Cursor::getNextRowOfCurPage");
     vector<int> result = this->page.getRow(this->pagePointer);
     if (!result.empty())
         this->pagePointer++;
@@ -30,15 +30,17 @@ vector<int> Cursor::getNextRowOfCurPage()
  * current row read from the page is indicated by the pagePointer(points to row
  * in page the cursor is pointing to). Loads next page if current page is fully read.
  *
- * @return vector<int> 
+ * @return vector<int>
  */
 vector<int> Cursor::getNext()
 {
-    logger.log("Cursor::geNext");
+    logger.log("Cursor::getNext");
     vector<int> result = this->getNextRowOfCurPage();
-    if(result.empty()){
+    if (result.empty())
+    {
         tableCatalogue.getTable(this->tableName)->getNextPage(this);
-        if(!this->pagePointer){
+        if (!this->pagePointer)
+        {
             result = this->page.getRow(this->pagePointer);
             this->pagePointer++;
         }
@@ -50,7 +52,7 @@ vector<int> Cursor::getNext()
  * @brief Function that loads Page indicated by pageIndex. Now the cursor starts
  * reading from the new page.
  *
- * @param pageIndex 
+ * @param pageIndex
  */
 void Cursor::nextPage(int pageIndex)
 {

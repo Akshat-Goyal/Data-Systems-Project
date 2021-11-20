@@ -9,7 +9,7 @@ bool syntacticParseJOIN()
 
     if (tokenizedQuery.size() != 13 || tokenizedQuery[3] != "USING" || tokenizedQuery[7] != "ON" || tokenizedQuery[11] != "BUFFER")
     {
-        cout << "SYNTAC ERROR" << endl;
+        cout << "SYNTAX ERROR" << endl;
         return false;
     }
     parsedQuery.queryType = JOIN;
@@ -101,7 +101,7 @@ Table *createJoinTable(Table *table1, Table *table2)
     return new Table(parsedQuery.joinResultRelationName, columnList);
 }
 
-void executedNestedJoin()
+void executeNestedJoin()
 {
     logger.log("executeNestedJoin");
 
@@ -207,19 +207,35 @@ int hashFunction(int val, int M)
     return val % M;
 }
 
-vector<int> partition(Table table, string columnName)
+template <class Ch, class Tr, class Container>
+basic_ostream<Ch, Tr> &operator<<(basic_ostream<Ch, Tr> &os, Container const &x)
+{
+    os << "{ ";
+    for (auto &y : x)
+    {
+        os << y << " ";
+    }
+    return os << "}";
+}
+
+template <class X, class Y>
+ostream &operator<<(ostream &os, pair<X, Y> const &p)
+{
+    return os << "[" << p.ff << ", " << p.ss << "]";
+}
+
+vector<int> partition(Table *table, string columnName, int M)
 {
     logger.log("partition");
-    Cursor cursor = table.getCursor();
+    Cursor cursor = table->getCursor();
     vector<int> row = cursor.getNext();
 
-    int columnIndex = table.getColumnIndex(columnName);
-    int M = parsedQuery.joinBufferSize - 1;
-    // TODO: check value of M
+    int columnIndex = table->getColumnIndex(columnName);
 
-    vector<vector<vector<int>>> buckets(M, vector<vector<int>>(table.maxRowsPerBlock, vector<int>(table.columnCount, 0)));
+    vector<vector<vector<int>>> buckets(M, vector<vector<int>>(table->maxRowsPerBlock, vector<int>(table->columnCount, 0)));
     vector<int> rowCounter(M, 0);
     vector<int> blockCount(M, 0);
+    vector<vector<int>> numberOfPagesInEachBucket(M);
 
     while (!row.empty())
     {
@@ -227,9 +243,10 @@ vector<int> partition(Table table, string columnName)
 
         buckets[bucket][rowCounter[bucket]++] = row;
 
-        if (rowCounter[bucket] == table.maxRowsPerBlock)
+        if (rowCounter[bucket] == table->maxRowsPerBlock)
         {
-            bufferManager.writePage(table.tableName + "_HashBucket_" + to_string(bucket), blockCount[bucket], buckets[bucket], rowCounter[bucket]);
+            numberOfPagesInEachBucket[bucket].push_back(rowCounter[bucket]);
+            bufferManager.writePage(table->tableName + "_HashBucket_" + to_string(bucket), blockCount[bucket], buckets[bucket], rowCounter[bucket]);
             blockCount[bucket]++;
             rowCounter[bucket] = 0;
         }
@@ -241,11 +258,15 @@ vector<int> partition(Table table, string columnName)
     {
         if (rowCounter[bucket])
         {
-            bufferManager.writePage(table.tableName + "_HashBucket_" + to_string(bucket), blockCount[bucket], buckets[bucket], rowCounter[bucket]);
+            numberOfPagesInEachBucket[bucket].push_back(rowCounter[bucket]);
+            bufferManager.writePage(table->tableName + "_HashBucket_" + to_string(bucket), blockCount[bucket], buckets[bucket], rowCounter[bucket]);
             blockCount[bucket]++;
             rowCounter[bucket] = 0;
         }
     }
+
+    table->isHashed = true;
+    table->numberOfPagesInEachBucket = numberOfPagesInEachBucket;
 
     return blockCount;
 }
@@ -254,20 +275,106 @@ void executePartitionHashJoin()
 {
     logger.log("executePartitionHashJoin");
 
-    Table table1 = *tableCatalogue.getTable(parsedQuery.joinFirstRelationName);
-    Table table2 = *tableCatalogue.getTable(parsedQuery.joinSecondRelationName);
-    Table *resultantTable = createJoinTable(&table1, &table2);
+    Table *table1 = tableCatalogue.getTable(parsedQuery.joinFirstRelationName);
+    Table *table2 = tableCatalogue.getTable(parsedQuery.joinSecondRelationName);
+    Table *resultantTable = createJoinTable(table1, table2);
 
     bool isTable1Outside = true;
-    if (table1.blockCount > table2.blockCount)
+    if (table1->blockCount > table2->blockCount)
     {
         isTable1Outside = false;
         swap(table1, table2);
         swap(parsedQuery.joinFirstColumnName, parsedQuery.joinSecondColumnName);
     }
 
-    vector<int> firstPartitionBlockCount = partition(table1, parsedQuery.joinFirstColumnName);
-    vector<int> secondPartitionBlockCount = partition(table2, parsedQuery.joinSecondColumnName);
+    int M = parsedQuery.joinBufferSize - 1;
+    // TODO: check value of M
+
+    vector<int> firstPartitionBlockCount = partition(table1, parsedQuery.joinFirstColumnName, M);
+    vector<int> secondPartitionBlockCount = partition(table2, parsedQuery.joinSecondColumnName, M);
+
+    int joinFirstColumnIndex = table1->getColumnIndex(parsedQuery.joinFirstColumnName);
+    int joinSecondColumnIndex = table2->getColumnIndex(parsedQuery.joinSecondColumnName);
+
+    int rowCounter = 0;
+    vector<vector<int>> resultantRows(resultantTable->maxRowsPerBlock, vector<int>(resultantTable->columnCount, 0));
+
+    for (int bucket = 0; bucket < M; bucket++)
+    {
+        for (int block1 = 0; block1 < firstPartitionBlockCount[bucket]; block1 += M)
+        {
+            unordered_multimap<int, vector<int>> table1Records;
+
+            for (int i = 0; i < min(M, firstPartitionBlockCount[bucket] - block1); i++)
+            {
+                Cursor cursor1(table1->tableName + "_HashBucket_" + to_string(bucket), block1 + i);
+
+                vector<int> row = cursor1.getNextRowOfCurPage();
+                while (!row.empty())
+                {
+                    table1Records.insert({row[joinFirstColumnIndex], row});
+                    row = cursor1.getNextRowOfCurPage();
+                }
+            }
+
+            for (int block2 = 0; block2 < secondPartitionBlockCount[bucket]; block2++)
+            {
+                Cursor cursor2(table2->tableName + "_HashBucket_" + to_string(bucket), block2);
+
+                vector<int> row = cursor2.getNextRowOfCurPage();
+
+                while (!row.empty())
+                {
+                    auto it = table1Records.equal_range(row[joinSecondColumnIndex]);
+                    for (auto itr = it.first; itr != it.second; itr++)
+                    {
+                        vector<int> resultantRow = itr->second;
+                        if (isTable1Outside)
+                        {
+                            resultantRow = itr->second;
+                            resultantRow.insert(resultantRow.end(), row.begin(), row.end());
+                        }
+                        else
+                        {
+                            resultantRow = row;
+                            resultantRow.insert(resultantRow.end(), itr->second.begin(), itr->second.end());
+                        }
+
+                        resultantRows[rowCounter++] = resultantRow;
+                        if (rowCounter == resultantTable->maxRowsPerBlock)
+                        {
+                            bufferManager.writePage(resultantTable->tableName, resultantTable->blockCount, resultantRows, rowCounter);
+                            resultantTable->rowCount += rowCounter;
+                            resultantTable->blockCount++;
+                            resultantTable->rowsPerBlockCount.emplace_back(rowCounter);
+                            rowCounter = 0;
+                        }
+                        // resultantTable->writeRow<int>(resultantRow);
+                    }
+                    row = cursor2.getNextRowOfCurPage();
+                }
+            }
+        }
+    }
+
+    if (rowCounter)
+    {
+        bufferManager.writePage(resultantTable->tableName, resultantTable->blockCount, resultantRows, rowCounter);
+        resultantTable->rowCount += rowCounter;
+        resultantTable->blockCount++;
+        resultantTable->rowsPerBlockCount.emplace_back(rowCounter);
+        rowCounter = 0;
+    }
+
+    if (resultantTable->rowCount)
+        tableCatalogue.insertTable(resultantTable);
+    else
+    {
+        resultantTable->unload();
+        delete resultantTable;
+        cout << "Empty Table" << endl;
+    }
+    return;
 }
 
 void executeJOIN()
@@ -276,12 +383,13 @@ void executeJOIN()
 
     if (parsedQuery.joinAlgorithm == NESTED)
     {
-        executedNestedJoin();
+        executeNestedJoin();
         cout << "Block access: " << BLOCK_ACCESS_COUNT << endl;
     }
     else
     {
-        cout << "No implementation found for part hash join" << endl;
+        executePartitionHashJoin();
+        cout << "Block access: " << BLOCK_ACCESS_COUNT << endl;
     }
 
     return;
