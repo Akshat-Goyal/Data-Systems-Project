@@ -6,7 +6,8 @@ using namespace std;
 float BLOCK_SIZE = 1;
 uint BLOCK_COUNT = 2;
 uint PRINT_COUNT = 20;
-uint BLOCK_ACCESS_COUNT = 0;
+uint READ_BLOCK_ACCESS_COUNT = 0;
+uint WRITE_BLOCK_ACCESS_COUNT = 0;
 Logger logger;
 vector<string> tokenizedQuery;
 ParsedQuery parsedQuery;
@@ -29,16 +30,17 @@ int main(void)
     system("rm -rf ../data/temp");
     system("mkdir ../data/temp");
 
-    while(!cin.eof())
+    while (!cin.eof())
     {
         cout << "\n> ";
         tokenizedQuery.clear();
         parsedQuery.clear();
-        BLOCK_ACCESS_COUNT = 0;
+        READ_BLOCK_ACCESS_COUNT = 0;
+        WRITE_BLOCK_ACCESS_COUNT = 0;
+
         logger.log("\nReading New Command: ");
         getline(cin, command);
         logger.log(command);
-
 
         auto words_begin = std::sregex_iterator(command.begin(), command.end(), delim);
         auto words_end = std::sregex_iterator();

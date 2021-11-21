@@ -111,23 +111,63 @@ void executeGROUPBY()
 	columnList.push_back(parsedQuery.groupByAggregateOperator + parsedQuery.groupByAggregateAttribute);
 	Table *resultantTable = new Table(parsedQuery.groupByResultRelationName, columnList);
 
+	vector<vector<int>> resultantRows(resultantTable->maxRowsPerBlock, vector<int>(resultantTable->columnCount, 0));
+	int rowCounter = 0;
+
 	for (auto it : resultTable)
 	{
+		vector<int> resultantRow;
+
 		if (parsedQuery.groupByAggregateOperator == "AVG")
 		{
-			resultantTable->writeRow<int>({it.first, it.second / countRowsPerGroupingAttribute[it.first]});
+			resultantRow.push_back(it.first);
+			resultantRow.push_back(it.second / countRowsPerGroupingAttribute[it.first]);
+			// resultantTable->writeRow<int>({it.first, it.second / countRowsPerGroupingAttribute[it.first]});
 		}
 
 		else
 		{
-			resultantTable->writeRow<int>({it.first, it.second});
+			resultantRow.push_back(it.first);
+			resultantRow.push_back(it.second);
+			// resultantTable->writeRow<int>({it.first, it.second});
+		}
+
+		resultantRows[rowCounter++] = resultantRow;
+
+		if (rowCounter == resultantTable->maxRowsPerBlock)
+		{
+			bufferManager.writePage(resultantTable->tableName, resultantTable->blockCount, resultantRows, rowCounter);
+			resultantTable->rowCount += rowCounter;
+			resultantTable->blockCount++;
+			resultantTable->rowsPerBlockCount.emplace_back(rowCounter);
+			rowCounter = 0;
 		}
 	}
 
-	resultantTable->blockify();
-	tableCatalogue.insertTable(resultantTable);
+	if (rowCounter)
+	{
+		bufferManager.writePage(resultantTable->tableName, resultantTable->blockCount, resultantRows, rowCounter);
+		resultantTable->rowCount += rowCounter;
+		resultantTable->blockCount++;
+		resultantTable->rowsPerBlockCount.emplace_back(rowCounter);
+		rowCounter = 0;
+	}
 
-	cout << "Block access: " << BLOCK_ACCESS_COUNT << endl;
+	// resultantTable->blockify();
+
+	if (resultantTable->rowCount)
+	{
+		tableCatalogue.insertTable(resultantTable);
+	}
+
+	else
+	{
+		resultantTable->unload();
+		delete resultantTable;
+		cout << "Empty Table" << endl;
+	}
+
+	cout << "Number of Block accesses: " << READ_BLOCK_ACCESS_COUNT + WRITE_BLOCK_ACCESS_COUNT << endl;
 
 	return;
 }

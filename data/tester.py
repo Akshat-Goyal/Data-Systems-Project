@@ -6,7 +6,7 @@ import sys
 
 def getRandom():
     startRange = 1
-    endRange = 10
+    endRange = 10000
     return random.randint(startRange, endRange)
 
 
@@ -50,7 +50,8 @@ def compareResultFiles():
 
 
 if __name__ == "__main__":
-    n = int(sys.argv[1])
+    n1 = int(sys.argv[1])
+    n2 = int(sys.argv[2])
 
     df1 = pd.DataFrame(columns=["col11", "col12", "col13"])
     df2 = pd.DataFrame(columns=["col21", "col22", "col23"])
@@ -58,11 +59,13 @@ if __name__ == "__main__":
         columns=["col11", "col12", "col13", "col21", "col22", "col23"]
     )
 
-    for i in range(n):
+    for i in range(n1):
         df1 = df1.append(
             {"col11": getRandom(), "col12": 9 * i + 4, "col13": getRandom()},
             ignore_index=True,
         )
+
+    for i in range(n2):
         df2 = df2.append(
             {"col21": getRandom(), "col22": 9 * i + 4, "col23": getRandom()},
             ignore_index=True,

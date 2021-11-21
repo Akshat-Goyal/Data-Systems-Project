@@ -203,8 +203,11 @@ int hashFunction(int val, int M)
 {
     logger.log("hashFunction");
 
-    // TODO: change hash function
-    return val % M;
+    long long int x = val;
+    x = ((x >> 16) ^ x) * 0x45d9f3b;
+    x = ((x >> 16) ^ x) * 0x45d9f3b;
+    x = (x >> 16) ^ x;
+    return (int)(x % M);
 }
 
 vector<int> partition(Table *table, string columnName, int M)
@@ -271,7 +274,6 @@ void executePartitionHashJoin()
     }
 
     int M = parsedQuery.joinBufferSize - 1;
-    // TODO: check value of M
 
     vector<int> firstPartitionBlockCount = partition(table1, parsedQuery.joinFirstColumnName, M);
     vector<int> secondPartitionBlockCount = partition(table2, parsedQuery.joinSecondColumnName, M);
@@ -367,13 +369,14 @@ void executeJOIN()
     if (parsedQuery.joinAlgorithm == NESTED)
     {
         executeNestedJoin();
-        cout << "Block access: " << BLOCK_ACCESS_COUNT << endl;
     }
     else
     {
         executePartitionHashJoin();
-        cout << "Block access: " << BLOCK_ACCESS_COUNT << endl;
     }
+
+    cout << "Number of Block accesses for READ: " << READ_BLOCK_ACCESS_COUNT << endl;
+    cout << "Number of Block accesses for WRITE: " << WRITE_BLOCK_ACCESS_COUNT << endl;
 
     return;
 }
