@@ -286,6 +286,11 @@ void executePartitionHashJoin()
 
     for (int bucket = 0; bucket < M; bucket++)
     {
+        if (firstPartitionBlockCount[bucket] == 0 || secondPartitionBlockCount[bucket] == 0)
+        {
+            continue;
+        }
+
         for (int block1 = 0; block1 < firstPartitionBlockCount[bucket]; block1 += M)
         {
             unordered_multimap<int, vector<int>> table1Records;
