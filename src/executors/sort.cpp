@@ -26,7 +26,7 @@ bool syntacticParseSORT()
         }
     }
 
-    parsedQuery.queryType = JOIN;
+    parsedQuery.queryType = SORT;
     parsedQuery.sortResultRelationName = tokenizedQuery[0];
     parsedQuery.sortRelationName = tokenizedQuery[3];
     parsedQuery.sortColumnName = tokenizedQuery[5];
@@ -74,8 +74,59 @@ bool semanticParseSORT()
     return true;
 }
 
+void executeSORTPhase1()
+{
+    logger.log("executeSORTPhase1");
+
+    Table table = *tableCatalogue.getTable(parsedQuery.sortRelationName);
+    Cursor cursor = table.getCursor();
+    int sortColumnIndex = table.getColumnIndex(parsedQuery.sortColumnName);
+    Table *resultantTable = new Table(parsedQuery.sortRelationName, table.columns);
+
+    int nb = parsedQuery.sortBufferSize - 1;
+    vector<vector<int>> resultantRows(resultantTable->maxRowsPerBlock, vector<int>(resultantTable->columnCount, 0));
+
+    for (resultantTable->blockCount = 0; resultantTable->blockCount < table.blockCount;)
+    {
+        multimap<int, vector<int>> sortedRows;
+        for (int i = resultantTable->blockCount; i < min(resultantTable->blockCount + nb, table.blockCount); i++)
+        {
+            vector<int> row = cursor.getNextRowOfCurPage();
+            while (!row.empty())
+            {
+                sortedRows.insert({row[sortColumnIndex], row});
+                row = cursor.getNextRowOfCurPage();
+            }
+            if (!table.getNextPage(&cursor))
+                break;
+        }
+
+        int rowCounter = 0;
+        auto it = sortedRows.begin();
+        while (it != sortedRows.end())
+        {
+            resultantRows[rowCounter++] = it++->second;
+            if (rowCounter == resultantTable->rowCount)
+            {
+                bufferManager.writePage(resultantTable->tableName, resultantTable->blockCount, resultantRows, rowCounter);
+                resultantTable->rowCount += rowCounter;
+                resultantTable->blockCount++;
+                resultantTable->rowsPerBlockCount.emplace_back(rowCounter);
+                rowCounter = 0;
+            }
+        }
+    }
+}
+
+void executeSORTPhase2()
+{
+    
+}
+
 void executeSORT()
 {
     logger.log("executeSORT");
+    executeSORTPhase1();
+    executeSORTPhase2();
     return;
 }

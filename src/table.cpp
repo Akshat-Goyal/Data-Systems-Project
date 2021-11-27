@@ -235,26 +235,23 @@ void Table::print()
     printRowCount(this->rowCount);
 }
 
-
-
 /**
- * @brief This function returns one row of the table using the cursor object. It
- * returns an empty row is all rows have been read.
+ * @brief This function loads next page of the table.
  *
  * @param cursor 
- * @return vector<int> 
+ * @return bool 
  */
-void Table::getNextPage(Cursor *cursor)
+bool Table::getNextPage(Cursor *cursor)
 {
     logger.log("Table::getNext");
 
-        if (cursor->pageIndex < this->blockCount - 1)
-        {
-            cursor->nextPage(cursor->pageIndex+1);
-        }
+    if (cursor->pageIndex < this->blockCount - 1)
+    {
+        cursor->nextPage(cursor->pageIndex+1);
+        return true;
+    }
+    return false;
 }
-
-
 
 /**
  * @brief called when EXPORT command is invoked to move source file to "data"
