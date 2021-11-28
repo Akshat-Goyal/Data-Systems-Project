@@ -74,27 +74,28 @@ bool semanticParseSORT()
     return true;
 }
 
-void executeSORTPhase1()
+void executeSORTPhase1(Table &table, Table *resultantTable)
 {
     logger.log("executeSORTPhase1");
 
-    Table table = *tableCatalogue.getTable(parsedQuery.sortRelationName);
     Cursor cursor = table.getCursor();
     int sortColumnIndex = table.getColumnIndex(parsedQuery.sortColumnName);
-    Table *resultantTable = new Table(parsedQuery.sortRelationName, table.columns);
 
     int nb = parsedQuery.sortBufferSize - 1;
+    int nr = ceil((double)table.blockCount / (double)nb);
+
     vector<vector<int>> resultantRows(resultantTable->maxRowsPerBlock, vector<int>(resultantTable->columnCount, 0));
 
     for (resultantTable->blockCount = 0; resultantTable->blockCount < table.blockCount;)
     {
-        multimap<int, vector<int>> sortedRows;
+        multimap<int, vector<int>> sortRows;
+        int sortingOrder = parsedQuery.sortingStrategy == ASC ? 1 : -1;
         for (int i = resultantTable->blockCount; i < min(resultantTable->blockCount + nb, table.blockCount); i++)
         {
             vector<int> row = cursor.getNextRowOfCurPage();
             while (!row.empty())
             {
-                sortedRows.insert({row[sortColumnIndex], row});
+                sortRows.insert({sortingOrder * row[sortColumnIndex], row});
                 row = cursor.getNextRowOfCurPage();
             }
             if (!table.getNextPage(&cursor))
@@ -102,31 +103,111 @@ void executeSORTPhase1()
         }
 
         int rowCounter = 0;
-        auto it = sortedRows.begin();
-        while (it != sortedRows.end())
+        auto it = sortRows.begin();
+        while (it != sortRows.end())
         {
             resultantRows[rowCounter++] = it++->second;
-            if (rowCounter == resultantTable->rowCount)
+            if (rowCounter == resultantTable->maxRowsPerBlock)
             {
-                bufferManager.writePage(resultantTable->tableName, resultantTable->blockCount, resultantRows, rowCounter);
+                bufferManager.writePage(resultantTable->tableName + (nr == 1 ? "" : "_" + to_string(nr)), resultantTable->blockCount, resultantRows, rowCounter);
                 resultantTable->rowCount += rowCounter;
                 resultantTable->blockCount++;
                 resultantTable->rowsPerBlockCount.emplace_back(rowCounter);
                 rowCounter = 0;
             }
         }
+        if (rowCounter)
+        {
+            bufferManager.writePage(resultantTable->tableName + (nr == 1 ? "" : "_" + to_string(nr)), resultantTable->blockCount, resultantRows, rowCounter);
+            resultantTable->rowCount += rowCounter;
+            resultantTable->blockCount++;
+            resultantTable->rowsPerBlockCount.emplace_back(rowCounter);
+            rowCounter = 0;
+        }
     }
+    tableCatalogue.insertTable(resultantTable);
 }
 
-void executeSORTPhase2()
+void executeSORTPhase2(Table &table, Table *resultantTable)
 {
+    logger.log("executeSORTPhase2");
+
+    int sortColumnIndex = table.getColumnIndex(parsedQuery.sortColumnName);
+    int nb = parsedQuery.sortBufferSize - 1;
+    int nr = ceil((double)resultantTable->blockCount / (double)nb);
     
+    int rowCounter = 0;
+    vector<vector<int>> resultantRows(resultantTable->maxRowsPerBlock, vector<int>(resultantTable->columnCount, 0));
+
+    while (nr != 1)
+    {
+        int pnr = ceil((double)resultantTable->blockCount / (double)nr);
+        int next_nr = ceil((double)nr / (double)nb);
+        int blockCounter = 0;
+        for (int i = 0; i < nr; i += nb)
+        {
+            multimap<int, pair<vector<int>, Cursor*>> mergeRows;
+            int sortingOrder = parsedQuery.sortingStrategy == ASC ? 1 : -1;
+            for (int j = i; j < min(nr, i + nb); j++)
+            {
+                Cursor *cursor = new Cursor(resultantTable->tableName + "_" + to_string(nr), j * pnr);
+                vector<int> row = cursor->getNextRowOfCurPage();
+                mergeRows.insert({sortingOrder * row[sortColumnIndex], {row, cursor}});
+            }
+
+            while (!mergeRows.empty())
+            {
+                auto it = mergeRows.begin();
+                vector<int> row = it->second.first;
+                Cursor *cursor = it->second.second;
+                mergeRows.erase(it);
+
+                resultantRows[rowCounter++] = row;
+                if (rowCounter == resultantTable->maxRowsPerBlock)
+                {
+                    bufferManager.writePage(resultantTable->tableName + (next_nr == 1 ? "" : "_" + to_string(next_nr)), blockCounter++, resultantRows, rowCounter);
+                    rowCounter = 0;
+                }
+                row = cursor->getNextRowOfCurPage();
+                if (row.empty())
+                {
+                    if ((cursor->pageIndex + 1) % pnr && (cursor->pageIndex + 1) != resultantTable->blockCount)
+                    {
+                        cursor->nextPage(cursor->pageIndex + 1);
+                        row = cursor->getNextRowOfCurPage();
+                    }
+                    else
+                    {
+                        delete cursor;
+                    }
+                }
+                if (!row.empty())
+                {
+                    mergeRows.insert({sortingOrder * row[sortColumnIndex], {row, cursor}});
+                }
+            }
+            if (rowCounter)
+            {
+                bufferManager.writePage(resultantTable->tableName + (next_nr == 1 ? "" : "_" + to_string(next_nr)), blockCounter++, resultantRows, rowCounter);
+                rowCounter = 0;
+            }
+        }
+
+        for (int pageCounter = 0; pageCounter < resultantTable->blockCount; pageCounter++)
+        {
+            bufferManager.deleteFile(resultantTable->tableName + "_" + to_string(nr), pageCounter);
+        }
+        nr = next_nr;
+    }
 }
 
 void executeSORT()
 {
     logger.log("executeSORT");
-    executeSORTPhase1();
-    executeSORTPhase2();
+
+    Table table = *tableCatalogue.getTable(parsedQuery.sortRelationName);
+    Table *resultantTable = new Table(parsedQuery.sortResultRelationName, table.columns);
+    executeSORTPhase1(table, resultantTable);
+    executeSORTPhase2(table, resultantTable);
     return;
 }

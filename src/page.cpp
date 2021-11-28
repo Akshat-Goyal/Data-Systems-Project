@@ -31,7 +31,11 @@ Page::Page(string tableName, int pageIndex)
     this->tableName = tableName;
     this->pageIndex = pageIndex;
     this->pageName = "../data/temp/" + this->tableName + "_Page" + to_string(pageIndex);
-    Table table = *tableCatalogue.getTable(tableName);
+
+    size_t found = tableName.find("_");
+    if (found == string::npos) found = tableName.length();
+    Table table = *tableCatalogue.getTable(tableName.substr(0, found));
+    
     this->columnCount = table.columnCount;
     uint maxRowCount = table.maxRowsPerBlock;
     vector<int> row(columnCount, 0);
