@@ -109,7 +109,7 @@ void executeSORTPhase1(Table &table, Table *resultantTable)
             resultantRows[rowCounter++] = it++->second;
             if (rowCounter == resultantTable->maxRowsPerBlock)
             {
-                bufferManager.writePage(resultantTable->tableName + (nr == 1 ? "" : "_" + to_string(nr)), resultantTable->blockCount, resultantRows, rowCounter);
+                bufferManager.writePage(resultantTable->tableName, nr, resultantTable->blockCount, resultantRows, rowCounter);
                 resultantTable->rowCount += rowCounter;
                 resultantTable->blockCount++;
                 resultantTable->rowsPerBlockCount.emplace_back(rowCounter);
@@ -118,7 +118,7 @@ void executeSORTPhase1(Table &table, Table *resultantTable)
         }
         if (rowCounter)
         {
-            bufferManager.writePage(resultantTable->tableName + (nr == 1 ? "" : "_" + to_string(nr)), resultantTable->blockCount, resultantRows, rowCounter);
+            bufferManager.writePage(resultantTable->tableName, nr, resultantTable->blockCount, resultantRows, rowCounter);
             resultantTable->rowCount += rowCounter;
             resultantTable->blockCount++;
             resultantTable->rowsPerBlockCount.emplace_back(rowCounter);
@@ -135,13 +135,13 @@ void executeSORTPhase2(Table &table, Table *resultantTable)
     int sortColumnIndex = table.getColumnIndex(parsedQuery.sortColumnName);
     int nb = parsedQuery.sortBufferSize - 1;
     int nr = ceil((double)resultantTable->blockCount / (double)nb);
+    int pnr = nb;
     
     int rowCounter = 0;
     vector<vector<int>> resultantRows(resultantTable->maxRowsPerBlock, vector<int>(resultantTable->columnCount, 0));
 
     while (nr != 1)
     {
-        int pnr = ceil((double)resultantTable->blockCount / (double)nr);
         int next_nr = ceil((double)nr / (double)nb);
         int blockCounter = 0;
         for (int i = 0; i < nr; i += nb)
@@ -150,7 +150,7 @@ void executeSORTPhase2(Table &table, Table *resultantTable)
             int sortingOrder = parsedQuery.sortingStrategy == ASC ? 1 : -1;
             for (int j = i; j < min(nr, i + nb); j++)
             {
-                Cursor *cursor = new Cursor(resultantTable->tableName + "_" + to_string(nr), j * pnr);
+                Cursor *cursor = new Cursor(resultantTable->tableName, nr, j * pnr);
                 vector<int> row = cursor->getNextRowOfCurPage();
                 mergeRows.insert({sortingOrder * row[sortColumnIndex], {row, cursor}});
             }
@@ -165,7 +165,7 @@ void executeSORTPhase2(Table &table, Table *resultantTable)
                 resultantRows[rowCounter++] = row;
                 if (rowCounter == resultantTable->maxRowsPerBlock)
                 {
-                    bufferManager.writePage(resultantTable->tableName + (next_nr == 1 ? "" : "_" + to_string(next_nr)), blockCounter++, resultantRows, rowCounter);
+                    bufferManager.writePage(resultantTable->tableName, next_nr, blockCounter++, resultantRows, rowCounter);
                     rowCounter = 0;
                 }
                 row = cursor->getNextRowOfCurPage();
@@ -188,16 +188,17 @@ void executeSORTPhase2(Table &table, Table *resultantTable)
             }
             if (rowCounter)
             {
-                bufferManager.writePage(resultantTable->tableName + (next_nr == 1 ? "" : "_" + to_string(next_nr)), blockCounter++, resultantRows, rowCounter);
+                bufferManager.writePage(resultantTable->tableName, next_nr, blockCounter++, resultantRows, rowCounter);
                 rowCounter = 0;
             }
         }
 
         for (int pageCounter = 0; pageCounter < resultantTable->blockCount; pageCounter++)
         {
-            bufferManager.deleteFile(resultantTable->tableName + "_" + to_string(nr), pageCounter);
+            bufferManager.deleteFile(resultantTable->tableName, nr, pageCounter);
         }
         nr = next_nr;
+        pnr = pnr * nb;
     }
 }
 

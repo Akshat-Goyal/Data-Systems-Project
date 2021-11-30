@@ -24,6 +24,29 @@ Page BufferManager::getPage(string tableName, int pageIndex)
 }
 
 /**
+ * @brief Function called to read a page from the buffer manager. If the page is
+ * not present in the pool, the page is read and then inserted into the pool.
+ *
+ * @param tableName
+ * @param tableIndex is concatenated with tableName to create a temp table
+ * @param pageIndex 
+ * @return Page 
+ */
+Page BufferManager::getPage(string tableName, int tableIndex, int pageIndex)
+{
+    logger.log("BufferManager::getPage");
+
+    if (tableIndex == 1)
+        return this->getPage(tableName, pageIndex);
+
+    string pageName = "../data/temp/"+tableName + "_" + to_string(tableIndex) + "_Page" + to_string(pageIndex);
+    if (this->inPool(pageName))
+        return this->getFromPool(pageName);
+    else
+        return this->insertIntoPool(tableName, tableIndex, pageIndex);
+}
+
+/**
  * @brief Checks to see if a page exists in the pool
  *
  * @param pageName 
@@ -77,6 +100,26 @@ Page BufferManager::insertIntoPool(string tableName, int pageIndex)
 }
 
 /**
+ * @brief Inserts page indicated by tableName , tableIndex and pageIndex into pool. If the
+ * pool is full, the pool ejects the oldest inserted page from the pool and adds
+ * the current page at the end. It naturally follows a queue data structure. 
+ *
+ * @param tableName 
+ * @param tableIndex
+ * @param pageIndex 
+ * @return Page 
+ */
+Page BufferManager::insertIntoPool(string tableName, int tableIndex, int pageIndex)
+{
+    logger.log("BufferManager::insertIntoPool");
+    Page page(tableName, tableIndex, pageIndex);
+    if (this->pages.size() >= BLOCK_COUNT)
+        pages.pop_front();
+    pages.push_back(page);
+    return page;
+}
+
+/**
  * @brief The buffer manager is also responsible for writing pages. This is
  * called when new tables are created using assignment statements.
  *
@@ -89,6 +132,30 @@ void BufferManager::writePage(string tableName, int pageIndex, vector<vector<int
 {
     logger.log("BufferManager::writePage");
     Page page(tableName, pageIndex, rows, rowCount);
+    page.writePage();
+}
+
+/**
+ * @brief The buffer manager is also responsible for writing pages. This is
+ * called when new tables are created using assignment statements.
+ *
+ * @param tableName 
+ * @param tableIndex
+ * @param pageIndex 
+ * @param rows 
+ * @param rowCount 
+ */
+void BufferManager::writePage(string tableName, int tableIndex, int pageIndex, vector<vector<int>> rows, int rowCount)
+{
+    logger.log("BufferManager::writePage");
+
+    if (tableIndex == 1)
+    {
+        this->writePage(tableName, pageIndex, rows, rowCount);
+        return;
+    }
+
+    Page page(tableName, tableIndex, pageIndex, rows, rowCount);
     page.writePage();
 }
 
@@ -116,5 +183,27 @@ void BufferManager::deleteFile(string tableName, int pageIndex)
 {
     logger.log("BufferManager::deleteFile");
     string fileName = "../data/temp/"+tableName + "_Page" + to_string(pageIndex);
+    this->deleteFile(fileName);
+}
+
+/**
+ * @brief Overloaded function that calls deleteFile(fileName) by constructing
+ * the fileName from the tableName, tableIndex and pageIndex.
+ *
+ * @param tableName 
+ * @param tableIndex
+ * @param pageIndex 
+ */
+void BufferManager::deleteFile(string tableName, int tableIndex, int pageIndex)
+{
+    logger.log("BufferManager::deleteFile");
+
+    if (tableIndex == 1)
+    {
+        deleteFile(tableName, pageIndex);
+        return;
+    }
+
+    string fileName = "../data/temp/"+tableName + "_" + to_string(tableIndex) + "_Page" + to_string(pageIndex);
     this->deleteFile(fileName);
 }
