@@ -1,6 +1,6 @@
 # Data Systems
 
-This is a simplified relational database management system which supports basic database operations on integer-only tables such as load, store, etc and transpose operations efficiently on arbitrarily large matrices. There is no support for transaction or thread safety.
+This is a simplified relational database management system which supports basic database operations on integer-only tables such as load, store, etc and transpose operations efficiently on arbitrarily large dense and sparse matrices. There is no support for transaction or thread safety.
 
 ## Compilation Instructions
 
@@ -26,7 +26,7 @@ Post compilation, an executable names ```server``` will be created in the ```src
 
 ## Commands / Queries
 
-- Look at the [Overview.html](./docs/Overview.html) to understand the syntax and working of the table related queries.
+- Look at the [Overview.html](./docs/Overview.md) to understand the syntax and working of the table related queries.
 
 - ```LOAD MATRIX <matrix_name>```:
 The LOAD MATRIX command loads contents of the .csv (stored in ```data``` folder) and stores it as blocks in the ```data/temp``` directory.
