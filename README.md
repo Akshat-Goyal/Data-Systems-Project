@@ -1,14 +1,12 @@
-[![Open in Visual Studio Code](https://classroom.github.com/assets/open-in-vscode-f059dc9a6f8d3a56e377f745f24479a46679e63a5d9fe6f495e02850cd0d8118.svg)](https://classroom.github.com/online_ide?assignment_repo_id=445416&assignment_repo_type=GroupAssignmentRepo)
-# SimpleRA
+# Data Systems
+
+This is a simplified relational database management system which supports basic database operations on integer-only tables such as load, store, etc, and sort.
 
 ## Compilation Instructions
 
-We use ```make``` to compile all the files and creste the server executable. ```make``` is used primarily in Linux systems, so those of you who want to use Windows will probably have to look up alternatives (I hear there are ways to install ```make``` on Windows). To compile
+We use ```make``` to compile all the files and create the server executable. ```make``` is used primarily in Linux systems, so those of you who want to use Windows will probably have to look up alternatives (I hear there are ways to install ```make``` on Windows). To compile
 
-```cd``` into the SimpleRA directory
-```
-cd SimpleRA
-```
+```cd``` into the directory
 ```cd``` into the soure directory (called ```src```)
 ```
 cd src
@@ -25,26 +23,13 @@ Post compilation, an executable names ```server``` will be created in the ```src
 ```
 ./server
 ```
-## To setup your Git Repository
-- Join the course github organisation using the invite link.
-- Join or create a team corresponding to your team name on the organisation.
-- Your repository will be initialised with a template code on succesful authorisation.
-- Now clone your personal repo using ```git clone "your repo link"```.
-- After you have cloned your repo to your system add the main repo as an upstream to your repo so whenever a change is pushed by TA's you can access it.
-- To set it as upstream type ```git remote add upstream https://github.com/SimpleRA/SimpleRA.git```.
-- Now it will be added as upstream.
-- To fetch the changes made by TA's just type ```git pull upstream master --allow-unrelated-histories``` .
-- Manually merge conflicts if there are any !!
 
+## Commands / Queries
 
-## Git tutorials
-- [Basic github tutorial](https://youtu.be/SWYqp7iY_Tc)
-- [Handling git merge conflicts](https://youtu.be/JtIX3HJKwfo)
-- [What is git stash?](https://youtu.be/KLEDKgMmbBI)
-- [The best way is documentation itself](https://docs.github.com/en)
+- Look at the [Overview.html](./docs/Overview.md) to understand the syntax and working of the table related queries.
 
-## Instructions for Creating a Pull Request
-- First fork the repo from the main code repository.
-- Then commit your changes to this forked repository.
-- To create a pull request go to the main repository and click on the pull request option.
-- Kindly only submit your pull requests to the branch **student-pull-requests** only. We won't entertain pull requests to master branch.
+- ```Sort```
+```
+<new_table_name> <- SORT <table_name> BY <column_name> IN ASC | DESC BUFFER <buffer_size>
+```
+Two-Phase Merge Sort algorithm is used to implement sort command.
