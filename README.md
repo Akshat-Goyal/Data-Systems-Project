@@ -17,6 +17,16 @@ make clean
 make
 ```
 
+## Branch Info
+
+- ```master``` branch supports transposing matrices.
+
+- ```bptree``` branch supports B+ tree indices.
+
+- ```join-and-group-by``` branch supports join and group by commands.
+
+- ```sort``` branch supports two-phase sort algorithm.
+
 ## To run
 
 Post compilation, an executable names ```server``` will be created in the ```src``` directory
